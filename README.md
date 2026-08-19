@@ -1,14 +1,8 @@
-<img src="docs/images/icon.png" width="120" align="left" alt="">
-
-# ReDrobo
+<h1><img src="docs/images/icon.png" width="76" align="middle" alt=""> ReDrobo</h1>
 
 Reads a Drobo over USB and tells you what is actually inside it: real capacity,
 drive bays, per-disk health. More or less what Drobo Dashboard used to show,
 except on the Macs Dashboard stopped running on.
-
-<br clear="left">
-
----
 
 Drobo went into liquidation in 2023. The last Dashboard shipped in February
 2021, tops out at macOS 11, is Intel-only, and leans on a kernel extension
@@ -25,10 +19,16 @@ ReDrobo speaks it again, with a DriverKit driver extension instead of a kext.
 
 ## Screenshots
 
-| | |
-|---|---|
-| ![Overview](docs/images/Screenshot_Overview.png) | ![Drive bays](docs/images/Screenshot_DriveBays.png) |
-| Capacity against the yellow and red thresholds the enclosure keeps for itself, and its own verdict on its own health. | The five bays with model and size, and the mSATA accelerator listed apart from them (it is a cache, not part of the protected pack). Each row opens for health, serial, firmware revision and wear. |
+![Overview](docs/images/Screenshot_Overview.png)
+
+*Capacity against the yellow and red thresholds the enclosure keeps for itself,
+and its own verdict on its own health.*
+
+![Drive bays](docs/images/Screenshot_DriveBays.png)
+
+*The five bays with model and size, and the mSATA accelerator listed apart from
+them (it is a cache, not part of the protected pack). Each row opens for health,
+serial, firmware revision and wear.*
 
 ## What it shows
 
@@ -110,13 +110,15 @@ the state of the machine.
 
 ## Documentation
 
-| | |
-|---|---|
-| [docs/PROTOCOL.md](docs/PROTOCOL.md) | The management protocol, field by field, with a confidence rating on every claim. |
-| [docs/DRIVERKIT.md](docs/DRIVERKIT.md) | Getting a SCSI peripheral dext to work, and the traps that cost a day each. |
-| [docs/TESTING.md](docs/TESTING.md) | Setting a Mac up to load a development driver, and putting it back afterwards. |
-| [docs/WRITING.md](docs/WRITING.md) | The write path, decoded, and why none of it is implemented. |
-| [docs/TEARDOWN.md](docs/TEARDOWN.md) | What the original Dashboard was made of. |
+- [docs/PROTOCOL.md](docs/PROTOCOL.md): the management protocol, field by
+  field, with a confidence rating on every claim.
+- [docs/DRIVERKIT.md](docs/DRIVERKIT.md): getting a SCSI peripheral dext to
+  work, and the traps that cost a day each.
+- [docs/TESTING.md](docs/TESTING.md): setting a Mac up to load a development
+  driver, and putting it back afterwards.
+- [docs/WRITING.md](docs/WRITING.md): the write path, decoded, and why none of
+  it is implemented.
+- [docs/TEARDOWN.md](docs/TEARDOWN.md): what the original Dashboard was made of.
 
 ## Licence
 
