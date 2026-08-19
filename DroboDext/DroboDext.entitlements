@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  CONFIRMED on 2026-08-19, build 12, macOS 27.0 / Apple Silicon.
+	
+	  SCSIPeripheralsDriverKit requires the SCSI *controller* family entitlement.
+	  Apple never minted a peripheral-side key, which is why none appears in
+	  their documentation, in the entitlement index, or in any kernel image. The
+	  framework simply shares its sibling's.
+	
+	  Ruled out first, each signed alone and each producing
+	  "DK: family entitlements check failed":
+	      com.apple.developer.driverkit.family.scsi-peripherals   build 10
+	      com.apple.developer.driverkit.family.scsiperipherals    build 11
+	
+	  With the two keys below the dext starts, matches the enclosure, vends its
+	  user client, and reads ESA records with the volume mounted.
+	
+	  Both are documented and requestable from Apple, so this is a normal
+	  entitlement request rather than a dead end:
+	      https://developer.apple.com/documentation/bundleresources/entitlements/com.apple.developer.driverkit.family.scsicontroller
+	-->
+	<key>com.apple.developer.driverkit</key>
+	<true/>
+	<key>com.apple.developer.driverkit.family.scsicontroller</key>
+	<true/>
+</dict>
+</plist>

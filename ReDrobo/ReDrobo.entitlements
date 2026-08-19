@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Lets the app ask the system to activate the driver it carries. -->
+	<key>com.apple.developer.system-extension.install</key>
+	<true/>
+
+	<!-- Lets the app open the driver's user client. -->
+	<key>com.apple.developer.driverkit.userclient-access</key>
+	<array>
+		<string>org.redrobo.ReDrobo.DroboDext</string>
+	</array>
+</dict>
+</plist>

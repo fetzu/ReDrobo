@@ -1,0 +1,30 @@
+## Anything moved aside rather than deleted: build output, signed bundles,
+## captures. Never committed.
+ZZ_BUFFER/
+
+## Build products
+ReDrobo/build/
+ReDrobo/ReDrobo.icns
+ReDrobo/ReDrobo.app/
+ReDrobo/*.zip
+DroboDext/build/
+DroboDext/*.dext/
+DroboDext/DroboDext.h
+DroboDext/DroboUserClient.h
+DroboDext/*.iig.cpp
+tools/droboesa/droboesa
+tools/droboprobe/droboprobe
+tools/phase1/droboprobe
+
+## Signing material, never commit these
+*.provisionprofile
+*.mobileprovision
+*.p12
+*.cer
+
+## Captures contain enclosure and drive serial numbers
+captures/
+*.log
+
+## macOS
+.DS_Store

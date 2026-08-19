@@ -1,0 +1,31 @@
+/*
+ * DroboUserClient -- what the host app opens.
+ *
+ * Takes an ESA record number, issues one MODE SENSE(10) through the driver,
+ * and hands back the raw record. ExternalMethod is LOCALONLY in DriverKit, so
+ * it is a plain C++ override rather than an IMPL() body.
+ */
+
+#ifndef DroboUserClient_h
+#define DroboUserClient_h
+
+#include <DriverKit/IOService.iig>
+#include <DriverKit/IOUserClient.iig>
+
+class DroboUserClient: public IOUserClient
+{
+public:
+    virtual bool          init   ( void ) override;
+    virtual void          free   ( void ) override;
+    virtual kern_return_t Start  ( IOService * provider ) override;
+    virtual kern_return_t Stop   ( IOService * provider ) override;
+
+    virtual kern_return_t
+    ExternalMethod ( uint64_t                           selector,
+                     IOUserClientMethodArguments      * arguments,
+                     const IOUserClientMethodDispatch * dispatch,
+                     OSObject                         * target,
+                     void                             * reference ) override;
+};
+
+#endif /* DroboUserClient_h */

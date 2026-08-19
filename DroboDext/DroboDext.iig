@@ -1,0 +1,37 @@
+/*
+ * DroboDext -- DriverKit replacement for TrustedDataSCSIDriver.kext.
+ *
+ * An IOUserSCSIPeripheralDeviceType00 subclass. The family keeps providing
+ * normal block storage, so the volume still mounts; this only adds back the
+ * management channel that died with the kext.
+ *
+ * Wire format is in docs/PROTOCOL.md. Only MODE SENSE(10) is implemented,
+ * deliberately: MODE SELECT writes settings to the enclosure and there is no
+ * reason to risk that until reading is proven.
+ */
+
+#ifndef DroboDext_h
+#define DroboDext_h
+
+#include <DriverKit/IOService.iig>
+#include <DriverKit/IOUserClient.iig>
+#include <SCSIPeripheralsDriverKit/IOUserSCSIPeripheralDeviceType00.iig>
+
+class DroboDext: public IOUserSCSIPeripheralDeviceType00
+{
+public:
+    virtual bool          init   ( void ) override;
+    virtual void          free   ( void ) override;
+    virtual kern_return_t Start  ( IOService * provider ) override;
+    virtual kern_return_t Stop   ( IOService * provider ) override;
+
+    /* Vends DroboUserClient, per UserClientProperties in Info.plist. */
+    virtual kern_return_t NewUserClient ( uint32_t type,
+                                          IOUserClient ** userClient ) override;
+
+protected:
+    virtual kern_return_t
+    UserDetermineDeviceCharacteristics ( bool * result ) override;
+};
+
+#endif /* DroboDext_h */
