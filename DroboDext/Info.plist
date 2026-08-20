@@ -15,45 +15,21 @@
 	<key>CFBundlePackageType</key>
 	<string>DEXT</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.0</string>
+	<string>1.1.0</string>
+	<key>CFBundleSupportedPlatforms</key>
+	<array>
+		<string>DriverKit</string>
+	</array>
 	<key>CFBundleVersion</key>
-	<string>14</string>
-	<key>OSBundleUsageDescription</key>
-	<string>Reads capacity, drive bay and health information from Drobo direct-attached storage enclosures.</string>
+	<string>16</string>
 	<key>IOKitPersonalities</key>
 	<dict>
-		<key>TrustedUSBMassStorage</key>
+		<key>Drobo</key>
 		<dict>
 			<key>CFBundleIdentifier</key>
 			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>IOClass</key>
-			<string>IOUserSCSIPeripheralDeviceType00</string>
-			<key>IOProviderClass</key>
-			<string>IOSCSIPeripheralDeviceNub</string>
-			<key>IOUserClass</key>
-			<string>DroboDext</string>
-			<key>IOUserServerName</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>Peripheral Device Type</key>
-			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>TRUSTED</string>
-			<key>Product Identification</key>
-			<string>USB Mass Storage</string>
 			<key>DroboPersonality</key>
-			<string>TrustedUSBMassStorage</string>
-			<key>UserClientProperties</key>
-			<dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>DroboUserClient</string>
-			</dict>
-		</dict>
-		<key>TrustedMassStorage</key>
-		<dict>
-			<key>CFBundleIdentifier</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<string>Drobo</string>
 			<key>IOClass</key>
 			<string>IOUserSCSIPeripheralDeviceType00</string>
 			<key>IOProviderClass</key>
@@ -64,40 +40,8 @@
 			<string>org.redrobo.ReDrobo.DroboDext</string>
 			<key>Peripheral Device Type</key>
 			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>TRUSTED</string>
-			<key>Product Identification</key>
-			<string>Mass Storage</string>
-			<key>DroboPersonality</key>
-			<string>TrustedMassStorage</string>
-			<key>UserClientProperties</key>
-			<dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>DroboUserClient</string>
-			</dict>
-		</dict>
-		<key>DroboUpper</key>
-		<dict>
-			<key>CFBundleIdentifier</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>IOClass</key>
-			<string>IOUserSCSIPeripheralDeviceType00</string>
-			<key>IOProviderClass</key>
-			<string>IOSCSIPeripheralDeviceNub</string>
-			<key>IOUserClass</key>
-			<string>DroboDext</string>
-			<key>IOUserServerName</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>Peripheral Device Type</key>
-			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>DROBO</string>
 			<key>Product Identification</key>
 			<string>Drobo</string>
-			<key>DroboPersonality</key>
-			<string>DroboUpper</string>
 			<key>UserClientProperties</key>
 			<dict>
 				<key>IOClass</key>
@@ -105,123 +49,15 @@
 				<key>IOUserClass</key>
 				<string>DroboUserClient</string>
 			</dict>
-		</dict>
-		<key>DroboPro</key>
-		<dict>
-			<key>CFBundleIdentifier</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>IOClass</key>
-			<string>IOUserSCSIPeripheralDeviceType00</string>
-			<key>IOProviderClass</key>
-			<string>IOSCSIPeripheralDeviceNub</string>
-			<key>IOUserClass</key>
-			<string>DroboDext</string>
-			<key>IOUserServerName</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>Peripheral Device Type</key>
-			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>DROBO</string>
-			<key>Product Identification</key>
-			<string>DroboPro</string>
-			<key>DroboPersonality</key>
-			<string>DroboPro</string>
-			<key>UserClientProperties</key>
-			<dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>DroboUserClient</string>
-			</dict>
-		</dict>
-		<key>DroboElite</key>
-		<dict>
-			<key>CFBundleIdentifier</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>IOClass</key>
-			<string>IOUserSCSIPeripheralDeviceType00</string>
-			<key>IOProviderClass</key>
-			<string>IOSCSIPeripheralDeviceNub</string>
-			<key>IOUserClass</key>
-			<string>DroboDext</string>
-			<key>IOUserServerName</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>Peripheral Device Type</key>
-			<integer>0</integer>
 			<key>Vendor Identification</key>
 			<string>Drobo</string>
-			<key>Product Identification</key>
-			<string>DroboElite</string>
-			<key>DroboPersonality</key>
-			<string>DroboElite</string>
-			<key>UserClientProperties</key>
-			<dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>DroboUserClient</string>
-			</dict>
-		</dict>
-		<key>Drobo3rdGen</key>
-		<dict>
-			<key>CFBundleIdentifier</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>IOClass</key>
-			<string>IOUserSCSIPeripheralDeviceType00</string>
-			<key>IOProviderClass</key>
-			<string>IOSCSIPeripheralDeviceNub</string>
-			<key>IOUserClass</key>
-			<string>DroboDext</string>
-			<key>IOUserServerName</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>Peripheral Device Type</key>
-			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>Drobo</string>
-			<key>Product Identification</key>
-			<string>3rd Gen DRDR3-A</string>
-			<key>DroboPersonality</key>
-			<string>Drobo3rdGen</string>
-			<key>UserClientProperties</key>
-			<dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>DroboUserClient</string>
-			</dict>
-		</dict>
-		<key>Drobo3Upper</key>
-		<dict>
-			<key>CFBundleIdentifier</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>IOClass</key>
-			<string>IOUserSCSIPeripheralDeviceType00</string>
-			<key>IOProviderClass</key>
-			<string>IOSCSIPeripheralDeviceNub</string>
-			<key>IOUserClass</key>
-			<string>DroboDext</string>
-			<key>IOUserServerName</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>Peripheral Device Type</key>
-			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>DROBO</string>
-			<key>Product Identification</key>
-			<string>Drobo3</string>
-			<key>DroboPersonality</key>
-			<string>Drobo3Upper</string>
-			<key>UserClientProperties</key>
-			<dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>DroboUserClient</string>
-			</dict>
 		</dict>
 		<key>Drobo3</key>
 		<dict>
 			<key>CFBundleIdentifier</key>
 			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>Drobo3</string>
 			<key>IOClass</key>
 			<string>IOUserSCSIPeripheralDeviceType00</string>
 			<key>IOProviderClass</key>
@@ -232,11 +68,7 @@
 			<string>org.redrobo.ReDrobo.DroboDext</string>
 			<key>Peripheral Device Type</key>
 			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>Drobo</string>
 			<key>Product Identification</key>
-			<string>Drobo3</string>
-			<key>DroboPersonality</key>
 			<string>Drobo3</string>
 			<key>UserClientProperties</key>
 			<dict>
@@ -245,11 +77,15 @@
 				<key>IOUserClass</key>
 				<string>DroboUserClient</string>
 			</dict>
+			<key>Vendor Identification</key>
+			<string>Drobo</string>
 		</dict>
-		<key>DroboSGen2</key>
+		<key>Drobo3Upper</key>
 		<dict>
 			<key>CFBundleIdentifier</key>
 			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>Drobo3Upper</string>
 			<key>IOClass</key>
 			<string>IOUserSCSIPeripheralDeviceType00</string>
 			<key>IOProviderClass</key>
@@ -260,12 +96,8 @@
 			<string>org.redrobo.ReDrobo.DroboDext</string>
 			<key>Peripheral Device Type</key>
 			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>USB 3.0</string>
 			<key>Product Identification</key>
-			<string>Drobo S - Gen 2</string>
-			<key>DroboPersonality</key>
-			<string>DroboSGen2</string>
+			<string>Drobo3</string>
 			<key>UserClientProperties</key>
 			<dict>
 				<key>IOClass</key>
@@ -273,235 +105,15 @@
 				<key>IOUserClass</key>
 				<string>DroboUserClient</string>
 			</dict>
-		</dict>
-		<key>DroboB800i</key>
-		<dict>
-			<key>CFBundleIdentifier</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>IOClass</key>
-			<string>IOUserSCSIPeripheralDeviceType00</string>
-			<key>IOProviderClass</key>
-			<string>IOSCSIPeripheralDeviceNub</string>
-			<key>IOUserClass</key>
-			<string>DroboDext</string>
-			<key>IOUserServerName</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>Peripheral Device Type</key>
-			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>Drobo</string>
-			<key>Product Identification</key>
-			<string>B800i</string>
-			<key>DroboPersonality</key>
-			<string>DroboB800i</string>
-			<key>UserClientProperties</key>
-			<dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>DroboUserClient</string>
-			</dict>
-		</dict>
-		<key>Drobo</key>
-		<dict>
-			<key>CFBundleIdentifier</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>IOClass</key>
-			<string>IOUserSCSIPeripheralDeviceType00</string>
-			<key>IOProviderClass</key>
-			<string>IOSCSIPeripheralDeviceNub</string>
-			<key>IOUserClass</key>
-			<string>DroboDext</string>
-			<key>IOUserServerName</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>Peripheral Device Type</key>
-			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>Drobo</string>
-			<key>Product Identification</key>
-			<string>Drobo</string>
-			<key>DroboPersonality</key>
-			<string>Drobo</string>
-			<key>UserClientProperties</key>
-			<dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>DroboUserClient</string>
-			</dict>
-		</dict>
-		<key>DroboB1200i</key>
-		<dict>
-			<key>CFBundleIdentifier</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>IOClass</key>
-			<string>IOUserSCSIPeripheralDeviceType00</string>
-			<key>IOProviderClass</key>
-			<string>IOSCSIPeripheralDeviceNub</string>
-			<key>IOUserClass</key>
-			<string>DroboDext</string>
-			<key>IOUserServerName</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>Peripheral Device Type</key>
-			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>Drobo</string>
-			<key>Product Identification</key>
-			<string>B1200i</string>
-			<key>DroboPersonality</key>
-			<string>DroboB1200i</string>
-			<key>UserClientProperties</key>
-			<dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>DroboUserClient</string>
-			</dict>
-		</dict>
-		<key>Drobo5DTB</key>
-		<dict>
-			<key>CFBundleIdentifier</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>IOClass</key>
-			<string>IOUserSCSIPeripheralDeviceType00</string>
-			<key>IOProviderClass</key>
-			<string>IOSCSIPeripheralDeviceNub</string>
-			<key>IOUserClass</key>
-			<string>DroboDext</string>
-			<key>IOUserServerName</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>Peripheral Device Type</key>
-			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>Drobo</string>
-			<key>Product Identification</key>
-			<string>5D - TB</string>
-			<key>DroboPersonality</key>
-			<string>Drobo5DTB</string>
-			<key>UserClientProperties</key>
-			<dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>DroboUserClient</string>
-			</dict>
-		</dict>
-		<key>Drobo5D</key>
-		<dict>
-			<key>CFBundleIdentifier</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>IOClass</key>
-			<string>IOUserSCSIPeripheralDeviceType00</string>
-			<key>IOProviderClass</key>
-			<string>IOSCSIPeripheralDeviceNub</string>
-			<key>IOUserClass</key>
-			<string>DroboDext</string>
-			<key>IOUserServerName</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>Peripheral Device Type</key>
-			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>Drobo</string>
-			<key>Product Identification</key>
-			<string>5D</string>
-			<key>DroboPersonality</key>
-			<string>Drobo5D</string>
-			<key>UserClientProperties</key>
-			<dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>DroboUserClient</string>
-			</dict>
-		</dict>
-		<key>DroboMiniTB</key>
-		<dict>
-			<key>CFBundleIdentifier</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>IOClass</key>
-			<string>IOUserSCSIPeripheralDeviceType00</string>
-			<key>IOProviderClass</key>
-			<string>IOSCSIPeripheralDeviceNub</string>
-			<key>IOUserClass</key>
-			<string>DroboDext</string>
-			<key>IOUserServerName</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>Peripheral Device Type</key>
-			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>Drobo</string>
-			<key>Product Identification</key>
-			<string>Mini - TB</string>
-			<key>DroboPersonality</key>
-			<string>DroboMiniTB</string>
-			<key>UserClientProperties</key>
-			<dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>DroboUserClient</string>
-			</dict>
-		</dict>
-		<key>DroboMini</key>
-		<dict>
-			<key>CFBundleIdentifier</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>IOClass</key>
-			<string>IOUserSCSIPeripheralDeviceType00</string>
-			<key>IOProviderClass</key>
-			<string>IOSCSIPeripheralDeviceNub</string>
-			<key>IOUserClass</key>
-			<string>DroboDext</string>
-			<key>IOUserServerName</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>Peripheral Device Type</key>
-			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>Drobo</string>
-			<key>Product Identification</key>
-			<string>Mini</string>
-			<key>DroboPersonality</key>
-			<string>DroboMini</string>
-			<key>UserClientProperties</key>
-			<dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>DroboUserClient</string>
-			</dict>
-		</dict>
-		<key>Drobo5DUpper</key>
-		<dict>
-			<key>CFBundleIdentifier</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>IOClass</key>
-			<string>IOUserSCSIPeripheralDeviceType00</string>
-			<key>IOProviderClass</key>
-			<string>IOSCSIPeripheralDeviceNub</string>
-			<key>IOUserClass</key>
-			<string>DroboDext</string>
-			<key>IOUserServerName</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>Peripheral Device Type</key>
-			<integer>0</integer>
 			<key>Vendor Identification</key>
 			<string>DROBO</string>
-			<key>Product Identification</key>
-			<string>5D</string>
-			<key>DroboPersonality</key>
-			<string>Drobo5DUpper</string>
-			<key>UserClientProperties</key>
-			<dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>DroboUserClient</string>
-			</dict>
 		</dict>
-		<key>DroboMiniUpper</key>
+		<key>Drobo3rdGen</key>
 		<dict>
 			<key>CFBundleIdentifier</key>
 			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>Drobo3rdGen</string>
 			<key>IOClass</key>
 			<string>IOUserSCSIPeripheralDeviceType00</string>
 			<key>IOProviderClass</key>
@@ -512,12 +124,8 @@
 			<string>org.redrobo.ReDrobo.DroboDext</string>
 			<key>Peripheral Device Type</key>
 			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>DROBO</string>
 			<key>Product Identification</key>
-			<string>Mini</string>
-			<key>DroboPersonality</key>
-			<string>DroboMiniUpper</string>
+			<string>3rd Gen DRDR3-A</string>
 			<key>UserClientProperties</key>
 			<dict>
 				<key>IOClass</key>
@@ -525,121 +133,15 @@
 				<key>IOUserClass</key>
 				<string>DroboUserClient</string>
 			</dict>
-		</dict>
-		<key>DroboAny</key>
-		<dict>
-			<key>CFBundleIdentifier</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>IOClass</key>
-			<string>IOUserSCSIPeripheralDeviceType00</string>
-			<key>IOProviderClass</key>
-			<string>IOSCSIPeripheralDeviceNub</string>
-			<key>IOUserClass</key>
-			<string>DroboDext</string>
-			<key>IOUserServerName</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>Peripheral Device Type</key>
-			<integer>0</integer>
 			<key>Vendor Identification</key>
 			<string>Drobo</string>
-			<key>DroboPersonality</key>
-			<string>DroboAny</string>
-			<key>UserClientProperties</key>
-			<dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>DroboUserClient</string>
-			</dict>
-		</dict>
-		<key>DroboGen3</key>
-		<dict>
-			<key>CFBundleIdentifier</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>IOClass</key>
-			<string>IOUserSCSIPeripheralDeviceType00</string>
-			<key>IOProviderClass</key>
-			<string>IOSCSIPeripheralDeviceNub</string>
-			<key>IOUserClass</key>
-			<string>DroboDext</string>
-			<key>IOUserServerName</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>Peripheral Device Type</key>
-			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>Drobo</string>
-			<key>Product Identification</key>
-			<string>Gen3</string>
-			<key>DroboPersonality</key>
-			<string>DroboGen3</string>
-			<key>UserClientProperties</key>
-			<dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>DroboUserClient</string>
-			</dict>
-		</dict>
-		<key>DroboB810i</key>
-		<dict>
-			<key>CFBundleIdentifier</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>IOClass</key>
-			<string>IOUserSCSIPeripheralDeviceType00</string>
-			<key>IOProviderClass</key>
-			<string>IOSCSIPeripheralDeviceNub</string>
-			<key>IOUserClass</key>
-			<string>DroboDext</string>
-			<key>IOUserServerName</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>Peripheral Device Type</key>
-			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>Drobo</string>
-			<key>Product Identification</key>
-			<string>B810i</string>
-			<key>DroboPersonality</key>
-			<string>DroboB810i</string>
-			<key>UserClientProperties</key>
-			<dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>DroboUserClient</string>
-			</dict>
 		</dict>
 		<key>Drobo5C</key>
 		<dict>
 			<key>CFBundleIdentifier</key>
 			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>IOClass</key>
-			<string>IOUserSCSIPeripheralDeviceType00</string>
-			<key>IOProviderClass</key>
-			<string>IOSCSIPeripheralDeviceNub</string>
-			<key>IOUserClass</key>
-			<string>DroboDext</string>
-			<key>IOUserServerName</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-			<key>Peripheral Device Type</key>
-			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>Drobo</string>
-			<key>Product Identification</key>
-			<string>5C</string>
 			<key>DroboPersonality</key>
 			<string>Drobo5C</string>
-			<key>UserClientProperties</key>
-			<dict>
-				<key>IOClass</key>
-				<string>IOUserUserClient</string>
-				<key>IOUserClass</key>
-				<string>DroboUserClient</string>
-			</dict>
-		</dict>
-		<key>Drobo8D</key>
-		<dict>
-			<key>CFBundleIdentifier</key>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
 			<key>IOClass</key>
 			<string>IOUserSCSIPeripheralDeviceType00</string>
 			<key>IOProviderClass</key>
@@ -650,12 +152,8 @@
 			<string>org.redrobo.ReDrobo.DroboDext</string>
 			<key>Peripheral Device Type</key>
 			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>Drobo</string>
 			<key>Product Identification</key>
-			<string>8D</string>
-			<key>DroboPersonality</key>
-			<string>Drobo8D</string>
+			<string>5C</string>
 			<key>UserClientProperties</key>
 			<dict>
 				<key>IOClass</key>
@@ -663,11 +161,15 @@
 				<key>IOUserClass</key>
 				<string>DroboUserClient</string>
 			</dict>
+			<key>Vendor Identification</key>
+			<string>Drobo</string>
 		</dict>
-		<key>Drobo8DTB</key>
+		<key>Drobo5D</key>
 		<dict>
 			<key>CFBundleIdentifier</key>
 			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>Drobo5D</string>
 			<key>IOClass</key>
 			<string>IOUserSCSIPeripheralDeviceType00</string>
 			<key>IOProviderClass</key>
@@ -678,12 +180,8 @@
 			<string>org.redrobo.ReDrobo.DroboDext</string>
 			<key>Peripheral Device Type</key>
 			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>Drobo</string>
 			<key>Product Identification</key>
-			<string>8D - TB</string>
-			<key>DroboPersonality</key>
-			<string>Drobo8DTB</string>
+			<string>5D</string>
 			<key>UserClientProperties</key>
 			<dict>
 				<key>IOClass</key>
@@ -691,11 +189,15 @@
 				<key>IOUserClass</key>
 				<string>DroboUserClient</string>
 			</dict>
+			<key>Vendor Identification</key>
+			<string>Drobo</string>
 		</dict>
 		<key>Drobo5D3</key>
 		<dict>
 			<key>CFBundleIdentifier</key>
 			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>Drobo5D3</string>
 			<key>IOClass</key>
 			<string>IOUserSCSIPeripheralDeviceType00</string>
 			<key>IOProviderClass</key>
@@ -706,12 +208,8 @@
 			<string>org.redrobo.ReDrobo.DroboDext</string>
 			<key>Peripheral Device Type</key>
 			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>Drobo</string>
 			<key>Product Identification</key>
 			<string>5D3</string>
-			<key>DroboPersonality</key>
-			<string>Drobo5D3</string>
 			<key>UserClientProperties</key>
 			<dict>
 				<key>IOClass</key>
@@ -719,11 +217,15 @@
 				<key>IOUserClass</key>
 				<string>DroboUserClient</string>
 			</dict>
+			<key>Vendor Identification</key>
+			<string>Drobo</string>
 		</dict>
 		<key>Drobo5D3TB</key>
 		<dict>
 			<key>CFBundleIdentifier</key>
 			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>Drobo5D3TB</string>
 			<key>IOClass</key>
 			<string>IOUserSCSIPeripheralDeviceType00</string>
 			<key>IOProviderClass</key>
@@ -734,12 +236,8 @@
 			<string>org.redrobo.ReDrobo.DroboDext</string>
 			<key>Peripheral Device Type</key>
 			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>Drobo</string>
 			<key>Product Identification</key>
 			<string>5D3 - TB</string>
-			<key>DroboPersonality</key>
-			<string>Drobo5D3TB</string>
 			<key>UserClientProperties</key>
 			<dict>
 				<key>IOClass</key>
@@ -747,11 +245,153 @@
 				<key>IOUserClass</key>
 				<string>DroboUserClient</string>
 			</dict>
+			<key>Vendor Identification</key>
+			<string>Drobo</string>
+		</dict>
+		<key>Drobo5DTB</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>Drobo5DTB</string>
+			<key>IOClass</key>
+			<string>IOUserSCSIPeripheralDeviceType00</string>
+			<key>IOProviderClass</key>
+			<string>IOSCSIPeripheralDeviceNub</string>
+			<key>IOUserClass</key>
+			<string>DroboDext</string>
+			<key>IOUserServerName</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>Peripheral Device Type</key>
+			<integer>0</integer>
+			<key>Product Identification</key>
+			<string>5D - TB</string>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>DroboUserClient</string>
+			</dict>
+			<key>Vendor Identification</key>
+			<string>Drobo</string>
+		</dict>
+		<key>Drobo5DUpper</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>Drobo5DUpper</string>
+			<key>IOClass</key>
+			<string>IOUserSCSIPeripheralDeviceType00</string>
+			<key>IOProviderClass</key>
+			<string>IOSCSIPeripheralDeviceNub</string>
+			<key>IOUserClass</key>
+			<string>DroboDext</string>
+			<key>IOUserServerName</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>Peripheral Device Type</key>
+			<integer>0</integer>
+			<key>Product Identification</key>
+			<string>5D</string>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>DroboUserClient</string>
+			</dict>
+			<key>Vendor Identification</key>
+			<string>DROBO</string>
+		</dict>
+		<key>Drobo8D</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>Drobo8D</string>
+			<key>IOClass</key>
+			<string>IOUserSCSIPeripheralDeviceType00</string>
+			<key>IOProviderClass</key>
+			<string>IOSCSIPeripheralDeviceNub</string>
+			<key>IOUserClass</key>
+			<string>DroboDext</string>
+			<key>IOUserServerName</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>Peripheral Device Type</key>
+			<integer>0</integer>
+			<key>Product Identification</key>
+			<string>8D</string>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>DroboUserClient</string>
+			</dict>
+			<key>Vendor Identification</key>
+			<string>Drobo</string>
+		</dict>
+		<key>Drobo8DTB</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>Drobo8DTB</string>
+			<key>IOClass</key>
+			<string>IOUserSCSIPeripheralDeviceType00</string>
+			<key>IOProviderClass</key>
+			<string>IOSCSIPeripheralDeviceNub</string>
+			<key>IOUserClass</key>
+			<string>DroboDext</string>
+			<key>IOUserServerName</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>Peripheral Device Type</key>
+			<integer>0</integer>
+			<key>Product Identification</key>
+			<string>8D - TB</string>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>DroboUserClient</string>
+			</dict>
+			<key>Vendor Identification</key>
+			<string>Drobo</string>
+		</dict>
+		<key>DroboAny</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>DroboAny</string>
+			<key>IOClass</key>
+			<string>IOUserSCSIPeripheralDeviceType00</string>
+			<key>IOProviderClass</key>
+			<string>IOSCSIPeripheralDeviceNub</string>
+			<key>IOUserClass</key>
+			<string>DroboDext</string>
+			<key>IOUserServerName</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>Peripheral Device Type</key>
+			<integer>0</integer>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>DroboUserClient</string>
+			</dict>
+			<key>Vendor Identification</key>
+			<string>Drobo</string>
 		</dict>
 		<key>DroboAnyUpper</key>
 		<dict>
 			<key>CFBundleIdentifier</key>
 			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>DroboAnyUpper</string>
 			<key>IOClass</key>
 			<string>IOUserSCSIPeripheralDeviceType00</string>
 			<key>IOProviderClass</key>
@@ -762,10 +402,6 @@
 			<string>org.redrobo.ReDrobo.DroboDext</string>
 			<key>Peripheral Device Type</key>
 			<integer>0</integer>
-			<key>Vendor Identification</key>
-			<string>DROBO</string>
-			<key>DroboPersonality</key>
-			<string>DroboAnyUpper</string>
 			<key>UserClientProperties</key>
 			<dict>
 				<key>IOClass</key>
@@ -773,12 +409,376 @@
 				<key>IOUserClass</key>
 				<string>DroboUserClient</string>
 			</dict>
+			<key>Vendor Identification</key>
+			<string>DROBO</string>
+		</dict>
+		<key>DroboB1200i</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>DroboB1200i</string>
+			<key>IOClass</key>
+			<string>IOUserSCSIPeripheralDeviceType00</string>
+			<key>IOProviderClass</key>
+			<string>IOSCSIPeripheralDeviceNub</string>
+			<key>IOUserClass</key>
+			<string>DroboDext</string>
+			<key>IOUserServerName</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>Peripheral Device Type</key>
+			<integer>0</integer>
+			<key>Product Identification</key>
+			<string>B1200i</string>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>DroboUserClient</string>
+			</dict>
+			<key>Vendor Identification</key>
+			<string>Drobo</string>
+		</dict>
+		<key>DroboB800i</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>DroboB800i</string>
+			<key>IOClass</key>
+			<string>IOUserSCSIPeripheralDeviceType00</string>
+			<key>IOProviderClass</key>
+			<string>IOSCSIPeripheralDeviceNub</string>
+			<key>IOUserClass</key>
+			<string>DroboDext</string>
+			<key>IOUserServerName</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>Peripheral Device Type</key>
+			<integer>0</integer>
+			<key>Product Identification</key>
+			<string>B800i</string>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>DroboUserClient</string>
+			</dict>
+			<key>Vendor Identification</key>
+			<string>Drobo</string>
+		</dict>
+		<key>DroboB810i</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>DroboB810i</string>
+			<key>IOClass</key>
+			<string>IOUserSCSIPeripheralDeviceType00</string>
+			<key>IOProviderClass</key>
+			<string>IOSCSIPeripheralDeviceNub</string>
+			<key>IOUserClass</key>
+			<string>DroboDext</string>
+			<key>IOUserServerName</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>Peripheral Device Type</key>
+			<integer>0</integer>
+			<key>Product Identification</key>
+			<string>B810i</string>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>DroboUserClient</string>
+			</dict>
+			<key>Vendor Identification</key>
+			<string>Drobo</string>
+		</dict>
+		<key>DroboElite</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>DroboElite</string>
+			<key>IOClass</key>
+			<string>IOUserSCSIPeripheralDeviceType00</string>
+			<key>IOProviderClass</key>
+			<string>IOSCSIPeripheralDeviceNub</string>
+			<key>IOUserClass</key>
+			<string>DroboDext</string>
+			<key>IOUserServerName</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>Peripheral Device Type</key>
+			<integer>0</integer>
+			<key>Product Identification</key>
+			<string>DroboElite</string>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>DroboUserClient</string>
+			</dict>
+			<key>Vendor Identification</key>
+			<string>Drobo</string>
+		</dict>
+		<key>DroboGen3</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>DroboGen3</string>
+			<key>IOClass</key>
+			<string>IOUserSCSIPeripheralDeviceType00</string>
+			<key>IOProviderClass</key>
+			<string>IOSCSIPeripheralDeviceNub</string>
+			<key>IOUserClass</key>
+			<string>DroboDext</string>
+			<key>IOUserServerName</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>Peripheral Device Type</key>
+			<integer>0</integer>
+			<key>Product Identification</key>
+			<string>Gen3</string>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>DroboUserClient</string>
+			</dict>
+			<key>Vendor Identification</key>
+			<string>Drobo</string>
+		</dict>
+		<key>DroboMini</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>DroboMini</string>
+			<key>IOClass</key>
+			<string>IOUserSCSIPeripheralDeviceType00</string>
+			<key>IOProviderClass</key>
+			<string>IOSCSIPeripheralDeviceNub</string>
+			<key>IOUserClass</key>
+			<string>DroboDext</string>
+			<key>IOUserServerName</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>Peripheral Device Type</key>
+			<integer>0</integer>
+			<key>Product Identification</key>
+			<string>Mini</string>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>DroboUserClient</string>
+			</dict>
+			<key>Vendor Identification</key>
+			<string>Drobo</string>
+		</dict>
+		<key>DroboMiniTB</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>DroboMiniTB</string>
+			<key>IOClass</key>
+			<string>IOUserSCSIPeripheralDeviceType00</string>
+			<key>IOProviderClass</key>
+			<string>IOSCSIPeripheralDeviceNub</string>
+			<key>IOUserClass</key>
+			<string>DroboDext</string>
+			<key>IOUserServerName</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>Peripheral Device Type</key>
+			<integer>0</integer>
+			<key>Product Identification</key>
+			<string>Mini - TB</string>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>DroboUserClient</string>
+			</dict>
+			<key>Vendor Identification</key>
+			<string>Drobo</string>
+		</dict>
+		<key>DroboMiniUpper</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>DroboMiniUpper</string>
+			<key>IOClass</key>
+			<string>IOUserSCSIPeripheralDeviceType00</string>
+			<key>IOProviderClass</key>
+			<string>IOSCSIPeripheralDeviceNub</string>
+			<key>IOUserClass</key>
+			<string>DroboDext</string>
+			<key>IOUserServerName</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>Peripheral Device Type</key>
+			<integer>0</integer>
+			<key>Product Identification</key>
+			<string>Mini</string>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>DroboUserClient</string>
+			</dict>
+			<key>Vendor Identification</key>
+			<string>DROBO</string>
+		</dict>
+		<key>DroboPro</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>DroboPro</string>
+			<key>IOClass</key>
+			<string>IOUserSCSIPeripheralDeviceType00</string>
+			<key>IOProviderClass</key>
+			<string>IOSCSIPeripheralDeviceNub</string>
+			<key>IOUserClass</key>
+			<string>DroboDext</string>
+			<key>IOUserServerName</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>Peripheral Device Type</key>
+			<integer>0</integer>
+			<key>Product Identification</key>
+			<string>DroboPro</string>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>DroboUserClient</string>
+			</dict>
+			<key>Vendor Identification</key>
+			<string>DROBO</string>
+		</dict>
+		<key>DroboSGen2</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>DroboSGen2</string>
+			<key>IOClass</key>
+			<string>IOUserSCSIPeripheralDeviceType00</string>
+			<key>IOProviderClass</key>
+			<string>IOSCSIPeripheralDeviceNub</string>
+			<key>IOUserClass</key>
+			<string>DroboDext</string>
+			<key>IOUserServerName</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>Peripheral Device Type</key>
+			<integer>0</integer>
+			<key>Product Identification</key>
+			<string>Drobo S - Gen 2</string>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>DroboUserClient</string>
+			</dict>
+			<key>Vendor Identification</key>
+			<string>USB 3.0</string>
+		</dict>
+		<key>DroboUpper</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>DroboUpper</string>
+			<key>IOClass</key>
+			<string>IOUserSCSIPeripheralDeviceType00</string>
+			<key>IOProviderClass</key>
+			<string>IOSCSIPeripheralDeviceNub</string>
+			<key>IOUserClass</key>
+			<string>DroboDext</string>
+			<key>IOUserServerName</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>Peripheral Device Type</key>
+			<integer>0</integer>
+			<key>Product Identification</key>
+			<string>Drobo</string>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>DroboUserClient</string>
+			</dict>
+			<key>Vendor Identification</key>
+			<string>DROBO</string>
+		</dict>
+		<key>TrustedMassStorage</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>TrustedMassStorage</string>
+			<key>IOClass</key>
+			<string>IOUserSCSIPeripheralDeviceType00</string>
+			<key>IOProviderClass</key>
+			<string>IOSCSIPeripheralDeviceNub</string>
+			<key>IOUserClass</key>
+			<string>DroboDext</string>
+			<key>IOUserServerName</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>Peripheral Device Type</key>
+			<integer>0</integer>
+			<key>Product Identification</key>
+			<string>Mass Storage</string>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>DroboUserClient</string>
+			</dict>
+			<key>Vendor Identification</key>
+			<string>TRUSTED</string>
+		</dict>
+		<key>TrustedUSBMassStorage</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>DroboPersonality</key>
+			<string>TrustedUSBMassStorage</string>
+			<key>IOClass</key>
+			<string>IOUserSCSIPeripheralDeviceType00</string>
+			<key>IOProviderClass</key>
+			<string>IOSCSIPeripheralDeviceNub</string>
+			<key>IOUserClass</key>
+			<string>DroboDext</string>
+			<key>IOUserServerName</key>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+			<key>Peripheral Device Type</key>
+			<integer>0</integer>
+			<key>Product Identification</key>
+			<string>USB Mass Storage</string>
+			<key>UserClientProperties</key>
+			<dict>
+				<key>IOClass</key>
+				<string>IOUserUserClient</string>
+				<key>IOUserClass</key>
+				<string>DroboUserClient</string>
+			</dict>
+			<key>Vendor Identification</key>
+			<string>TRUSTED</string>
 		</dict>
 	</dict>
-	<key>CFBundleSupportedPlatforms</key>
-	<array>
-		<string>DriverKit</string>
-	</array>
+	<key>OSBundleUsageDescription</key>
+	<string>Reads capacity, drive bay and health information from Drobo direct-attached storage enclosures.</string>
 	<key>OSMinimumDriverKitVersion</key>
 	<string>25.5</string>
 </dict>
