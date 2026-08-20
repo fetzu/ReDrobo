@@ -63,7 +63,7 @@ here can plug in are still picked up without guessing their INQUIRY product
 strings. `IOSCSIPeripheralDeviceNub::matchPropertyTable` only checks the keys a
 personality actually carries, so omitting `Product Identification` matches every
 Drobo. Whether a Vendor-only match still outscores Apple's driver is **not
-tested** — that contest has only ever been run on a 5D, where the specific
+tested**: that contest has only ever been run on a 5D, where the specific
 personality wins anyway. If another model turns up as connected-but-unclaimed,
 that is the reason, and the app prints the strings needed to add a specific
 personality for it.
@@ -102,9 +102,10 @@ which passed, then narrowed:
 in the signature**, which is what makes the name discoverable locally at all.
 Without that, this would have required asking Apple to guess along with you.
 
-The practical consequence is large: `family.scsicontroller` is **documented and
-requestable** (macOS 11.3). Running this driver with SIP fully enabled is now an
-ordinary entitlement request, not an open research question.
+The practical consequence is larger than it first looked: `family.scsicontroller`
+is **documented and requestable** (macOS 11.3), and on a machine of your own it
+does not even have to be requested. That part is below, under "Two ways off the
+boot-args".
 
 ### Why the earlier "it is not an entitlement" conclusion was also wrong
 
@@ -184,19 +185,124 @@ See `docs/TESTING.md` for the machine setup. In short: SIP off,
 `systemextensionsctl developer on`, `amfi_get_out_of_my_way=1`, app in
 `/Applications`, reboot after every driver replacement.
 
+That is the no-developer-account version, and it is the one everything above was
+measured on. If you do have an account, do the provisioning profiles first and
+the boot-arg drops straight out of that list.
+
 ## Undoing the test machine
 
 ```bash
 sudo nvram -d boot-args
 ```
 
-Then `csrutil enable` from recoveryOS. The dext stops loading once either is
-restored, which is expected until the entitlement is granted properly by Apple.
+Then `csrutil enable` from recoveryOS.
 
-## Asking Apple
+## Two ways off the boot-args (they are not the same way)
 
-Request `com.apple.developer.driverkit.family.scsicontroller` together with
-`com.apple.developer.driverkit`. Both are documented capabilities. The request
-can point at a driver that already loads, binds to the device and reads it
-correctly on a development machine, which is a far stronger case than a
-proposal.
+`amfi_get_out_of_my_way=1` is the worst thing in this document. It does not
+relax the rules for this driver, it relaxes them for every process on the
+machine: anybody's code, carrying any entitlement anybody cares to sign into it.
+Getting rid of it, and getting this driver onto a Mac belonging to someone else,
+turn out to be two separate problems with two different answers.
+
+### 1. Your own Macs, which needs nobody's permission
+
+Since Xcode 14 (2022) Apple splits the DriverKit capabilities by profile type.
+Quinn, of Apple's Developer Technical Support, on the developer forums: for
+development profiles "these capabilities are no longer managed", so any
+developer can add them to any App ID on the portal and they flow through into
+the development provisioning profiles made from it. They stay managed for
+distribution profiles.
+
+Which means the two keys that cost an afternoon of brute force up there are a
+form to fill in rather than a negotiation. `docs/PROVISIONING.md` is the
+step-by-step; in outline, roughly 45 minutes and a paid membership:
+
+- two App IDs: `org.redrobo.ReDrobo` with System Extension and Communicates
+  with Drivers, `org.redrobo.ReDrobo.DroboDext` with the DriverKit ones
+- every Mac it has to run on, registered by its Provisioning UDID
+  (`system_profiler SPHardwareDataType`)
+- a DriverKit App Development profile for the driver, an ordinary macOS
+  development profile for the app
+- both dropped next to the Makefile as `DroboDext.provisionprofile` and
+  `ReDrobo.provisionprofile`, which `make` picks up on its own
+
+No code changes anywhere. A provisioning profile is precisely the mechanism that
+boot-arg exists to defeat, so the boot-arg goes and AMFI goes back to enforcing
+everything else on the machine.
+
+And SIP goes back on too, which was the open question here until 2026-08-20.
+
+Measured that day on a MacBook Pro (Mac17,9) running macOS 26.6.2 (25G83), SIP
+**enabled**, no boot-args set at all, developer mode not even available (the
+tool refuses to run while SIP is on). App copied to `/Applications`, opened,
+Install driver pressed, approved in System Settings:
+
+```
+enabled	active	teamID	bundleID (version)	name	[state]
+*	*	H2N329D9U8	org.redrobo.ReDrobo.DroboDext (1.0.0/16)	ReDrobo Driver	[activated enabled]
+```
+
+Two separate things fall out of that. The app carries
+`com.apple.developer.system-extension.install`, a restricted entitlement, and it
+launched rather than being SIGKILLed: AMFI honours a restricted entitlement
+under full SIP purely because a provisioning profile authorises it. And
+`sysextd` then activated a development-signed extension that has never been near
+the notary.
+
+The second one contradicts the folklore, including the Karabiner-DriverKit
+project's own notes, which say flatly that a dext has to be notarized once SIP
+is enabled. That is true of a Developer ID build. It is **not** true of a build
+signed for development with a profile that names the machine it is running on:
+the profile is what the system trusts, and the device list is what makes
+trusting it safe. Apple's documentation never says this either way, which is
+presumably how the folklore got started.
+
+And the last link closed the same day. A Drobo 5D was plugged into that same
+MacBook Pro, still SIP enabled, still no boot-args, still no developer mode, and
+the driver matched it, started, and read it: capacity, bays, health, the lot.
+The family entitlement check passes at match time on a Mac with every defence
+up.
+
+So the whole chain is proven end to end on a machine in the state Apple ships
+it. Everything above about SIP, AMFI and boot-args describes how this was found
+out, not what it takes to run it.
+
+Two limits worth knowing before starting: a development profile is good for one
+year, and it covers the machines listed in it and no others.
+
+### 2. Everybody else's Macs, which means asking Apple
+
+For a build that loads on a Mac neither of us has ever seen, with SIP on, the
+driver has to be signed with a Developer ID certificate and notarized, and at
+that point the capabilities are managed again. That means requesting
+`com.apple.developer.driverkit` and
+`com.apple.developer.driverkit.family.scsicontroller` on the driver's App ID,
+and `com.apple.developer.driverkit.userclient-access` on the app's.
+
+Since June 2025 that request happens inside the portal and not through a web
+form: Certificates, Identifiers & Profiles, then Identifiers, then the App ID,
+then the **Capability Requests** tab, then Request. Status and any notes from
+Apple come back on that same tab, which is a real improvement on the old form
+(which answered by e-mail, or did not answer). Account Holder role required, and
+the App ID has to exist before you can request anything against it.
+
+Do not go looking for the form Apple's own documentation points at.
+`developer.apple.com/contact/request/system-extension/` is linked from the
+DriverKit documentation and from Apple's System Extensions page, and it has been
+404 since the portal change. Expect weeks either way.
+
+The case is stronger than it feels from the outside. Apple's DTS has said on the
+record that they do approve requests from third parties rather than only from
+the vendor whose name is on the box, and that they lean towards approving rather
+than rejecting. Nothing here is scoped to a USB vendor and product ID, so it
+sidesteps the wildcard entitlement argument Apple refuses outright. The driver
+only reads, with standard opcodes, and never touches the vendor-specific range.
+And the request can point at something that already loads, matches and reads
+real hardware, which makes for a considerably better letter than a proposal.
+
+Once granted, the resulting build outlives the membership: a Developer ID
+provisioning profile issued after 22.02.2017 is valid for 18 years, and a
+notarized app keeps launching for as long as its certificate was valid on the
+day it was signed. The account is what you need in order to *make* a build, not
+what the build needs in order to keep working.

@@ -1,33 +1,41 @@
 # Testing DroboDext
 
 The driver is built and signed. What is left is the part only you can do:
-putting the Mac into a state where it will load a development driver.
+getting a Mac to accept a driver extension that did not come from Apple.
 
-Read this whole page before starting. Step 1 weakens your Mac's security and
-step 7 puts it back.
+Read this whole page before starting. There are two ways to do it, they are not
+equally pleasant, and only one of them touches your Mac's security settings.
 
-## What this proves, and what it does not
+## Two routes, and you only need one
 
-With SIP off, macOS relaxes entitlement checking for driver extensions. That is
-enough to answer the question we actually care about: **does
-`IOUserSCSIPeripheralDeviceType00` work for a Drobo, and can it read the ESA
-records with the volume mounted?**
+**Route A, a provisioning profile.** Costs a paid Apple developer account and
+about an hour on Apple's portal. Costs nothing else: System Integrity Protection
+stays on, no boot-args, the Mac stays exactly as Apple shipped it. The DriverKit
+capabilities this driver needs are self-serve for development, so there is
+nothing to request from Apple and nobody to wait for.
 
-It does not give you a driver you can live with. For that the dext has to load
-with SIP on, which needs the SCSI-peripheral family entitlement from Apple. The
-useful side effect of this test is that if the load is refused, the log names
-the exact entitlement key, which is the thing I could not find in Apple's public
-documentation.
+Confirmed on 2026-08-20, on a MacBook Pro running macOS 26.6.2 with SIP enabled
+and no boot-args at all: the driver installs, activates, matches a Drobo 5D and
+reads it. Details in `docs/DRIVERKIT.md`.
+
+**Route B, turn the checks off.** Costs nothing and needs no account. Costs you
+the machine's defences instead: SIP off, and AMFI told to ignore entitlements,
+apply to everything running on that Mac rather than to ReDrobo alone. Use a
+spare machine.
+
+Route A is better in every respect except the one that matters if you do not
+have an account. Both are below. Do one.
 
 ## Before you start
 
 - Plug the Drobo into the **test** Mac over USB. The iMac is not involved.
-- Know that you will reboot twice, into recovery once.
+- On route B, know that you will reboot twice, into recovery once. On route A,
+  not at all.
 - Nothing here writes to the enclosure. The driver only issues MODE SENSE(10).
 
 ### If the test Mac is headless, read this first
 
-**You cannot do this over Remote Desktop.** Apple Silicon requires One True
+**Route B cannot be done over Remote Desktop.** Apple Silicon requires One True
 Recovery, holding the power button at boot, and Apple built that specifically so
 only a physically present user can lower the security settings. recoveryOS has
 no screen sharing.
@@ -61,65 +69,69 @@ ditto -x -k ReDrobo-app.zip . && xattr -dr com.apple.quarantine ReDrobo.app && s
 ```
 
 Use `ditto`, not Finder's zip: it keeps the signature and the bundle structure
-intact. Skip steps 3 and 4 below in that case, they are for building in place.
+intact. Skip steps 2 and 3 below in that case, they are for building in place.
 
-## 1. Turn SIP off
+## 1. Get the entitlements honoured
 
-Shut down, then hold the power button until "Loading startup options" appears.
-Choose Options, then Utilities, then Terminal, and run:
+The app and the driver carry **restricted** entitlements:
+`system-extension.install` on the app, the `driverkit` keys on the driver. They
+are only honoured if the system has a reason to trust them, and without one AMFI
+kills the app the instant it execs. The crash report says
+`Namespace CODESIGNING, Code 1, Taskgated Invalid Signature` with an empty
+`codeSigningID`, which reads like a broken signature and is not one: the
+signature is fine, the entitlements are the problem. Verified by experiment, the
+same binary re-signed with no entitlements at all launches normally.
+
+`make doctor` tells you where you stand at any point, for either route.
+
+### Route A: embed provisioning profiles
+
+**[PROVISIONING.md](PROVISIONING.md) is this route written out in full**, and
+you want it rather than the summary here, because every step of it has a trap
+that announces itself as something else. In outline:
+
+1. Two App IDs, one for the app with **System Extension**, one for the driver
+   with **DriverKit (development)**, **DriverKit Family SCSIController
+   (development)** and **DriverKit Allow Any UserClient (development)**. All
+   checkboxes, all granted to anybody who ticks them.
+2. Every Mac it has to run on, registered under Devices by its Provisioning
+   UDID.
+3. Two profiles, **DriverKit App Development** for the driver and ordinary macOS
+   development for the app, dropped next to the Makefile as
+   `DroboDext.provisionprofile` and `ReDrobo.provisionprofile`.
+
+Then skip to step 2 and leave SIP alone. A profile naming the machine is all
+macOS asks for, and contrary to a good deal of folklore a development build does
+**not** have to be notarized to install with SIP on.
+
+A development profile covers the machines listed in it and no others, and
+expires after a year.
+
+### Route B: turn the checks off
+
+No account needed. Only on a Mac you are willing to weaken.
+
+Turn SIP off. Shut down, hold the power button until "Loading startup options"
+appears, then Options, Utilities, Terminal:
 
 ```bash
 csrutil disable
 ```
 
-Reboot into macOS normally.
-
-## 2. Turn on driver extension developer mode
+Reboot into macOS normally, then turn on driver extension developer mode:
 
 ```bash
 systemextensionsctl developer on
 ```
 
-This fails while SIP is on, which is the check that step 1 passed.
-
-## 2b. Deal with the provisioning profile problem
-
-This one bit us on the first attempt, so do it before building.
-
-The app carries **restricted** entitlements: `system-extension.install` and the
-`driverkit` keys. On a development-signed build those are only honoured if a
-matching provisioning profile is embedded in the bundle. Without one, AMFI kills
-the process the instant it execs, and the crash report says
-`Namespace CODESIGNING, Code 1, Taskgated Invalid Signature` with an empty
-`codeSigningID`. The signature itself is fine; the entitlements are the problem.
-
-Verified by experiment: the same binary re-signed with no entitlements at all
-launches normally.
-
-Run `make doctor` and it will tell you which of these you need.
-
-### Option A, the correct one: embed provisioning profiles
-
-On developer.apple.com, create two App IDs, `org.redrobo.ReDrobo` with the
-System Extension capability and `org.redrobo.ReDrobo.DroboDext` with the DriverKit ones,
-make a development provisioning profile for each, and drop them next to the
-Makefile as `ReDrobo.provisionprofile` and `DroboDext.provisionprofile`. The
-build embeds them automatically.
-
-Worth doing even if you use Option B to run the test, because the capability
-list on that page answers the strategic question directly: **if the DriverKit
-family capabilities are not offered to your account, the whole dext route is
-closed and no amount of local testing changes that.** Five minutes to find out.
-
-### Option B, the fast one: stop AMFI enforcing
-
-Only on a throwaway test Mac that already has SIP off.
+That command fails while SIP is on, which is a useful check that the previous
+step took. Then stop AMFI enforcing entitlements:
 
 ```bash
 sudo nvram boot-args="amfi_get_out_of_my_way=1"
 ```
 
-Reboot, then confirm it stuck:
+Reboot again, and confirm it stuck:
 
 ```bash
 nvram boot-args
@@ -127,11 +139,9 @@ nvram boot-args
 
 If it did not stick, the security policy is Reduced rather than Permissive. Go
 back to recovery, open Startup Security Utility, choose Permissive Security, and
-try again.
+try again. Step 6 puts all of it back.
 
-Undo it later with `sudo nvram -d boot-args`.
-
-## 3. Build
+## 2. Build
 
 ```bash
 cd ReDrobo && make
@@ -140,7 +150,7 @@ cd ReDrobo && make
 Signs with your Apple Development identity. Override with
 `make SIGN_ID="..."` if you would rather use a different identity.
 
-## 4. Install into /Applications
+## 3. Install into /Applications
 
 ```bash
 cd ReDrobo && make install
@@ -149,7 +159,7 @@ cd ReDrobo && make install
 The system refuses to activate an extension from an app anywhere else, so this
 step is not optional.
 
-## 5. Activate
+## 4. Activate
 
 Open `/Applications/ReDrobo.app` and press **Install driver**.
 
@@ -165,7 +175,7 @@ systemextensionsctl list
 
 You want to see `org.redrobo.ReDrobo.DroboDext` marked `activated enabled`.
 
-## 5b. Reboot after replacing a driver
+## 4b. Reboot after replacing a driver
 
 Not optional, and it cost us a round.
 
@@ -198,7 +208,7 @@ how the app reads back the build that is *running* rather than the one that is
 installed. When the two differ, the app says so at the top of the window and in
 Settings ▸ Driver, and the answer is always: restart.
 
-## 6. Read the enclosure
+## 5. Read the enclosure
 
 There is nothing to press. The app polls on its own and fills in the four panes:
 capacity, the six slots with their models, the enclosure name, firmware, the
@@ -217,16 +227,27 @@ Two things to watch for, because they are the real questions:
   was wrong and it matters.
 - **Do the numbers match `drobo-space`?** If yes, the driver is correct.
 
-## 7. Turn SIP back on
+## 6. Putting the Mac back
 
-Do this the same day. Recovery again:
+Route A leaves nothing to undo. SIP was never off.
+
+For route B, do it the same day. The boot-arg first:
+
+```bash
+sudo nvram -d boot-args
+```
+
+Then SIP, from recovery, and put the security policy back to Full while you are
+in there:
 
 ```bash
 csrutil enable
 ```
 
-The dext stops loading once SIP is back on, which is expected. Everything stays
-in the repo and reinstalls in minutes once the entitlement question is settled.
+A build with no provisioning profile stops loading at that point, which is
+expected: that is the entire difference between the two routes. Everything stays
+in the repo and reinstalls in minutes if you later get an account and take route
+A.
 
 ## When it does not work
 

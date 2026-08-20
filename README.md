@@ -46,12 +46,29 @@ serial, firmware revision and wear.*
 
 Read this bit before you move straight on into installing.
 
-**It will not run on a normal Mac.** A driver extension that publishes a service
-needs a family entitlement from Apple, and until one is granted the driver only
-loads on a machine with System Integrity Protection turned off and AMFI told to
-look the other way. That is a real reduction in security for the whole machine
-(not just for ReDrobo), so: use a spare Mac. The setup assistant walks you
-through it and puts it back afterwards, but it cannot make it safe.
+**You have to make macOS accept the driver, and there are two ways to do it.**
+A driver extension only loads if the system has a reason to trust its
+entitlements. Which route you take comes down to whether you have a paid Apple
+developer account.
+
+*With one*, you sign your build against a development provisioning profile you
+make yourself. The DriverKit capabilities involved turn out to be self-serve:
+nothing to request, nobody to wait for, about an hour on Apple's portal. The Mac
+stays exactly as Apple shipped it, System Integrity Protection on, no boot-args,
+nothing weakened. Confirmed on macOS 26.6.2 with SIP enabled: the driver
+installs, activates, matches a 5D and reads it.
+[docs/PROVISIONING.md](docs/PROVISIONING.md) walks through it.
+
+*Without one*, the Mac has to be told to stop checking instead: SIP off, and
+AMFI told to look the other way. That works for anybody and costs nothing, but
+it is a real reduction in security for the whole machine (not just for ReDrobo),
+so: use a spare Mac. The setup assistant walks you through it and puts it back
+afterwards, but it cannot make it safe.
+
+**Either way you sign it yourself.** A development profile covers the machines
+listed in it and nothing else, so a build handed to you is no use. A signed and
+notarized ReDrobo that installs on any Mac needs the same entitlements granted
+for distribution, which is Apple's decision rather than mine.
 
 **It has been tested on exactly one enclosure**, a Drobo 5D on firmware 4.2.3,
 by one person, on one Mac mini. The driver carries all 26 Vendor/Product pairs
@@ -92,7 +109,10 @@ the part that actually bites.
 
 ## Building
 
-You need Xcode 26 and a paid Apple Developer account.
+You need Xcode 26 and a paid Apple Developer account. Put the two provisioning
+profiles next to the Makefile first (see
+[docs/DRIVERKIT.md](docs/DRIVERKIT.md)): `make` embeds them if it finds them,
+and tells you what happens if it does not.
 
 ```bash
 cd ReDrobo && make && make install
@@ -114,6 +134,8 @@ the state of the machine.
   field, with a confidence rating on every claim.
 - [docs/DRIVERKIT.md](docs/DRIVERKIT.md): getting a SCSI peripheral dext to
   work, and the traps that cost a day each.
+- [docs/PROVISIONING.md](docs/PROVISIONING.md): signing it yourself, step by
+  step, and the portal traps that are documented nowhere.
 - [docs/TESTING.md](docs/TESTING.md): setting a Mac up to load a development
   driver, and putting it back afterwards.
 - [docs/WRITING.md](docs/WRITING.md): the write path, decoded, and why none of

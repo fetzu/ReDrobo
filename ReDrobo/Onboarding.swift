@@ -2,9 +2,12 @@
 //
 //  What it takes to get the driver loading, checked rather than described.
 //
-//  Most of these steps weaken macOS security, and none of them would be needed
-//  if Apple had granted the DriverKit family entitlement to this team. The
-//  assistant says so, shows what each step actually does, and hands over the
+//  These steps weaken macOS security, and the AMFI one is not needed at all on
+//  a build that carries a development provisioning profile. Worth saying loudly,
+//  because the DriverKit capabilities this driver uses turned out to be
+//  self-serve: anyone with a paid developer account can make the profiles
+//  themselves, with nothing to request and nobody to wait for. So the assistant
+//  puts that route first, shows what each step actually does, and hands over the
 //  command instead of running it: they need root, they change how the whole Mac
 //  boots, and that is not a decision an app should make on someone's behalf.
 
@@ -144,6 +147,8 @@ struct SetupView: View {
             VStack(alignment: .leading, spacing: 16) {
                 header
 
+                if !checks.hasProvisioningProfile { routes }
+
                 Card {
                     ForEach(Array(steps.enumerated()), id: \.element.id) { index, step in
                         StepRow(step: step, number: index + 1)
@@ -153,19 +158,7 @@ struct SetupView: View {
 
                 if needsSecurityChanges { securityNote }
 
-                Card(title: "Putting it back") {
-                    Text("Undo the two boot-level changes when you are finished, or when "
-                       + "Apple grants the entitlement and they stop being necessary.")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                    CommandBlock(command: "sudo nvram -d boot-args")
-                    CommandBlock(command: "csrutil enable",
-                                 note: "From recoveryOS, the same way you turned it off.")
-                    Text("The driver stops loading once either is restored, which is "
-                       + "expected until the entitlement is granted.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                if somethingToUndo { puttingItBack }
             }
             .padding(24)
             .frame(maxWidth: 720)
@@ -177,14 +170,17 @@ struct SetupView: View {
     // MARK: Pieces
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        let intro = checks.hasProvisioningProfile
+            ? "This build carries a provisioning profile, so macOS honours its "
+            + "entitlements as they stand. Nothing below asks you to change a security "
+            + "setting: install the driver, approve it, restart."
+            : "ReDrobo talks to a Drobo through a driver extension, and macOS only loads "
+            + "one whose entitlements it has a reason to trust. There are two ways to "
+            + "give it one, and they are not equally pleasant."
+        return VStack(alignment: .leading, spacing: 8) {
             Text("Setting up ReDrobo")
                 .font(.largeTitle.weight(.semibold))
-            Text("ReDrobo talks to a Drobo through a driver extension, and macOS will "
-               + "not load one that Apple has not blessed. Until that entitlement is "
-               + "granted, the Mac has to be told to accept it — which is what these "
-               + "steps do, and why they should be done on a spare Mac rather than the "
-               + "one you rely on.")
+            Text(intro)
                 .font(.callout)
                 .foregroundStyle(.secondary)
             HStack {
@@ -200,28 +196,84 @@ struct SetupView: View {
         }
     }
 
-    private var needsSecurityChanges: Bool {
-        checks.sipDisabled != true || !checks.entitlementsCanBeHonoured
+    private var needsSecurityChanges: Bool { !checks.hasProvisioningProfile }
+
+    /// Whether this Mac has anything left to restore. Route A never touches it.
+    private var somethingToUndo: Bool {
+        checks.sipDisabled == true || checks.amfiDisabled == true
     }
 
     private var securityNote: some View {
-        Card {
+        let switches = checks.hasProvisioningProfile
+            ? "Turning off System Integrity Protection"
+            : "Turning off System Integrity Protection and AMFI"
+        return Card {
             Label {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("These steps lower this Mac's defences")
                         .font(.body.weight(.medium))
-                    Text("Turning off System Integrity Protection and AMFI lets any "
-                       + "unsigned code that gets root do things macOS would normally "
-                       + "refuse. That is a real reduction in security for the whole "
-                       + "machine, not just for ReDrobo, and it is why the project's own "
-                       + "advice is to use a spare Mac. ReDrobo will not make these "
-                       + "changes for you.")
+                    Text(switches + " lets any unsigned code that gets root do things "
+                       + "macOS would normally refuse. That is a real reduction in "
+                       + "security for the whole machine, not just for ReDrobo, and it is "
+                       + "why the project's own advice is to use a spare Mac. ReDrobo "
+                       + "will not make these changes for you.")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
             } icon: {
                 Image(systemName: "exclamationmark.shield.fill").foregroundStyle(.orange)
             }
+        }
+    }
+
+    /// The choice, stated plainly and only while it is still a choice. One route
+    /// costs money, the other costs security, and very little else separates
+    /// them.
+    private var routes: some View {
+        Card(title: "Two ways to do this, and you only need one") {
+            Text("With a paid Apple developer account")
+                .font(.body.weight(.medium))
+            Text("Sign ReDrobo yourself against a development provisioning profile. The "
+               + "DriverKit capabilities involved are self-serve, so there is nothing to "
+               + "request and nobody to wait for, and this Mac stays exactly as Apple "
+               + "shipped it: System Integrity Protection on, no boot-args, nothing "
+               + "weakened. Confirmed working on macOS 26.6.2, driver loaded and "
+               + "enclosure read with every defence up. The procedure is in "
+               + "docs/PROVISIONING.md.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            Divider()
+            Text("Without one")
+                .font(.body.weight(.medium))
+            Text("Tell this Mac to stop checking instead, which is what the steps below "
+               + "do. It works for anybody and costs nothing, but it lowers the defences "
+               + "of the whole machine rather than ReDrobo's alone, so do it on a spare "
+               + "Mac.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var puttingItBack: some View {
+        Card(title: "Putting it back") {
+            Text("Undo the boot-level changes when you are finished. A build carrying a "
+               + "provisioning profile needs neither of them, so if ReDrobo is staying, "
+               + "that is the better fix.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            if checks.amfiDisabled == true {
+                CommandBlock(command: "sudo nvram -d boot-args")
+            }
+            if checks.sipDisabled == true {
+                CommandBlock(command: "csrutil enable",
+                             note: "From recoveryOS, the same way you turned it off. Put "
+                                 + "the security policy back to Full while you are there.")
+            }
+            Text("A build with no provisioning profile stops loading at that point, "
+               + "which is expected: that is the whole difference between the two "
+               + "routes.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 
@@ -237,51 +289,48 @@ struct SetupView: View {
                   + "else. ReDrobo is currently at \(Bundle.main.bundleURL.path).",
             state: checks.inApplications ? .done : .blocked))
 
-        out.append(SetupStep(
-            id: "sip",
-            title: "Turn off System Integrity Protection",
-            detail: sipDetail,
-            state: checks.sipDisabled == nil ? .unknown
-                 : (checks.sipDisabled! ? .done : .todo),
-            command: "csrutil disable",
-            commandNote: "Run this in recoveryOS, not here. Shut down, hold the power "
-                       + "button until \"Loading startup options\" appears, then choose "
-                       + "Options ▸ Utilities ▸ Terminal. Apple Silicon requires you to "
-                       + "be physically at the machine; this cannot be done over screen "
-                       + "sharing."))
-
-        out.append(SetupStep(
-            id: "developer",
-            title: "Turn on driver extension developer mode",
-            detail: "Lets macOS load a driver that has not been through the App Store. "
-                  + "The command fails while SIP is on, which is a useful check that "
-                  + "the previous step took.",
-            state: checks.developerMode == nil ? .unknown
-                 : (checks.developerMode! ? .done : .todo),
-            command: "systemextensionsctl developer on"))
-
-        if !checks.hasProvisioningProfile {
+        if checks.hasProvisioningProfile {
             out.append(SetupStep(
-                id: "amfi",
+                id: "entitlements",
+                title: "Let the Mac honour ReDrobo's entitlements",
+                detail: entitlementsDetail,
+                state: .done))
+        } else {
+            out.append(SetupStep(
+                id: "sip",
+                title: "Turn off System Integrity Protection",
+                detail: sipDetail,
+                state: checks.sipDisabled == nil ? .unknown
+                     : (checks.sipDisabled! ? .done : .todo),
+                command: "csrutil disable",
+                commandNote: "Run this in recoveryOS, not here. Shut down, hold the "
+                           + "power button until \"Loading startup options\" appears, "
+                           + "then choose Options \u{25B8} Utilities \u{25B8} Terminal. "
+                           + "Apple Silicon requires you to be physically at the "
+                           + "machine; this cannot be done over screen sharing."))
+
+            out.append(SetupStep(
+                id: "developer",
+                title: "Turn on driver extension developer mode",
+                detail: "Stops macOS insisting the app live in /Applications, and makes "
+                      + "replacing a driver less fussy about version numbers. The "
+                      + "command fails while SIP is on, which is a useful check that the "
+                      + "previous step took.",
+                state: checks.developerMode == nil ? .unknown
+                     : (checks.developerMode! ? .done : .todo),
+                command: "systemextensionsctl developer on"))
+
+            out.append(SetupStep(
+                id: "entitlements",
                 title: "Stop AMFI enforcing entitlements",
-                detail: "ReDrobo carries restricted entitlements. On a development build "
-                      + "those are only honoured with a matching provisioning profile "
-                      + "embedded, and this copy has none — so AMFI has to be told to "
-                      + "stand down instead, or the app is killed the moment it launches."
-                      + (checks.bootArgs.map { $0.isEmpty ? "" : " boot-args is currently \"\($0)\"." } ?? ""),
+                detail: entitlementsDetail,
                 state: checks.amfiDisabled == nil ? .unknown
                      : (checks.amfiDisabled! ? .done : .todo),
                 command: "sudo nvram boot-args=\"amfi_get_out_of_my_way=1\"",
                 commandNote: "Then restart. If it does not stick, the security policy is "
-                           + "Reduced rather than Permissive: go back to recoveryOS, open "
-                           + "Startup Security Utility and choose Permissive Security."))
-        } else {
-            out.append(SetupStep(
-                id: "profile",
-                title: "Provisioning profile embedded",
-                detail: "This build carries a profile, so its entitlements are honoured "
-                      + "without touching AMFI.",
-                state: .done))
+                           + "Reduced rather than Permissive: go back to recoveryOS, "
+                           + "open Startup Security Utility and choose Permissive "
+                           + "Security."))
         }
 
         out.append(SetupStep(
@@ -312,10 +361,29 @@ struct SetupView: View {
 
     private var sipDetail: String {
         switch checks.sipDisabled {
-        case true?:  return "Off, which is what a development driver needs."
-        case false?: return "On. macOS will refuse to load ReDrobo's driver while it is."
+        case true?:  return "Off, which is what this route needs."
+        case false?: return "On. Without a provisioning profile to authorise them, "
+                          + "ReDrobo's entitlements are not honoured while it is."
         default:     return "Could not be read on this Mac."
         }
+    }
+
+    /// Two ways to get the entitlements honoured. The profile is much the better
+    /// one and costs nothing but a developer account, so it goes first.
+    private var entitlementsDetail: String {
+        if checks.hasProvisioningProfile {
+            return "Done. This build carries a provisioning profile, so macOS honours "
+                 + "its entitlements as they stand. System Integrity Protection can stay "
+                 + "on, no boot-args are needed, and AMFI goes on enforcing everything "
+                 + "else on this Mac."
+        }
+        var text = "ReDrobo carries restricted entitlements and this copy has no "
+                 + "provisioning profile to authorise them, so AMFI has to be told to "
+                 + "stand down or the app is killed the moment it launches."
+        if let args = checks.bootArgs, !args.isEmpty {
+            text += " boot-args is currently \"\(args)\"."
+        }
+        return text
     }
 
     private var driverDetail: String {
