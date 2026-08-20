@@ -9,9 +9,13 @@
 #   make check      show what got signed and with which entitlements
 #   make clean
 #
-# Signing: uses your Apple Development identity by default. For a development
-# dext the machine also has to have SIP off and dext developer mode on, see
-# docs/TESTING.md.
+#   make RELEASE=1 notarize    Developer ID build, notarized and stapled
+#
+# Signing: your Apple Development identity and the two development provisioning
+# profiles by default. RELEASE=1 switches to Developer ID, the two Developer ID
+# profiles and a secure timestamp. The development capabilities are self-serve
+# and the distribution ones have to be granted by Apple, which is the whole
+# difference between the two paths; docs/DRIVERKIT.md has the detail.
 
 MAKEFLAGS += --no-builtin-rules
 .SUFFIXES:
@@ -28,21 +32,38 @@ DEXT       := org.redrobo.ReDrobo.DroboDext.dext
 ARCHS      := arm64 x86_64
 DEPLOY     := 26.0
 
-# Override with:  make SIGN_ID="Apple Development: Someone Else (XXXXXXXXXX)"
-SIGN_ID    ?= $(shell security find-identity -v -p codesigning 2>/dev/null | awk -F\" '/Apple Development/{print $$2; exit}')
-
 # Restricted entitlements (system-extension.install, driverkit.*) are only
-# honoured on a development-signed build if a matching provisioning profile is
-# embedded in the bundle. Without one AMFI SIGKILLs the app at exec, which
-# surfaces as "Taskgated Invalid Signature". Drop the profiles next to this
-# Makefile and they get embedded automatically.
-PROFILE_APP  := ReDrobo.provisionprofile
-PROFILE_DEXT := DroboDext.provisionprofile
+# honoured if a matching provisioning profile is embedded in the bundle. Without
+# one AMFI SIGKILLs the app at exec, which surfaces as "Taskgated Invalid
+# Signature". Drop the profiles next to this Makefile and they get embedded
+# automatically.
+PROFILE_APP_DEV      := ReDrobo.provisionprofile
+PROFILE_DEXT_DEV     := DroboDext.provisionprofile
+PROFILE_APP_RELEASE  := ReDrobo-DeveloperID.provisionprofile
+PROFILE_DEXT_RELEASE := DroboDext-DeveloperID.provisionprofile
+
+# Override either identity with:  make SIGN_ID="Apple Development: Someone (XXXX)"
+ifdef RELEASE
+SIGN_ID      ?= $(shell security find-identity -v -p codesigning 2>/dev/null | awk -F\" '/Developer ID Application/{print $$2; exit}')
+PROFILE_APP  := $(PROFILE_APP_RELEASE)
+PROFILE_DEXT := $(PROFILE_DEXT_RELEASE)
+# A Developer ID signature has to outlive its certificate: Gatekeeper checks
+# that the certificate was valid on the day of signing rather than today, and
+# the secure timestamp is what proves when that was. The notary service refuses
+# anything signed without one. A development build needs none of this and the
+# timestamp costs a round trip to Apple, so it is off by default.
+TIMESTAMP    := --timestamp
+else
+SIGN_ID      ?= $(shell security find-identity -v -p codesigning 2>/dev/null | awk -F\" '/Apple Development/{print $$2; exit}')
+PROFILE_APP  := $(PROFILE_APP_DEV)
+PROFILE_DEXT := $(PROFILE_DEXT_DEV)
+TIMESTAMP    := --timestamp=none
+endif
 
 SWIFTFLAGS := -O
 SOURCES    := $(wildcard *.swift)
 
-.PHONY: all clean install check signing dext dist doctor bump icon
+.PHONY: all clean install check signing dext dist notarize doctor bump icon
 
 all: $(BUNDLE)
 
@@ -88,17 +109,19 @@ $(BUNDLE): $(addprefix build/$(APP)-,$(ARCHS)) Info.plist ReDrobo.entitlements d
 		cp "$(PROFILE_APP)" $(BUNDLE)/Contents/embedded.provisionprofile; \
 		echo "==> embedded $(PROFILE_APP) in the app"; \
 	else \
-		echo "==> NOTE: no provisioning profiles found."; \
-		echo "    The app will be SIGKILLed at launch unless the test Mac boots"; \
-		echo "    with amfi_get_out_of_my_way=1. Run 'make doctor' for detail."; \
+		echo "==> NOTE: $(PROFILE_APP) not found."; \
+		echo "    Restricted entitlements will not be honoured without it: the app"; \
+		echo "    is SIGKILLed at launch unless the Mac boots with"; \
+		echo "    amfi_get_out_of_my_way=1, and the notary service refuses it"; \
+		echo "    outright. Run 'make doctor' for detail."; \
 	fi
 	@echo
 	@echo "==> signing the dext first, then the app around it"
-	codesign --force --timestamp=none --options runtime \
+	codesign --force $(TIMESTAMP) --options runtime \
 		--sign "$(SIGN_ID)" \
 		--entitlements $(DEXT_DIR)/DroboDext.entitlements \
 		$(BUNDLE)/Contents/Library/SystemExtensions/$(DEXT)
-	codesign --force --timestamp=none --options runtime \
+	codesign --force $(TIMESTAMP) --options runtime \
 		--sign "$(SIGN_ID)" \
 		--entitlements ReDrobo.entitlements \
 		$(BUNDLE)
@@ -136,6 +159,37 @@ dist: $(BUNDLE)
 	@echo "  sudo xattr -cr /Applications/ReDrobo.app"
 	@echo "  # then Install driver, then REBOOT"
 
+# Notarization. The credentials live in the keychain and never in this file:
+#
+#     xcrun notarytool store-credentials
+#
+# which asks for a profile name, your Apple ID, the team ID and an app-specific
+# password. Pass NOTARY_PROFILE if you called it something else.
+NOTARY_PROFILE ?= redrobo
+
+notarize: $(BUNDLE)
+	@if [ -z "$(RELEASE)" ]; then \
+		echo "Refusing: a notarized build has to be signed with Developer ID."; \
+		echo "  make RELEASE=1 notarize"; \
+		exit 1; \
+	fi
+	@mkdir -p build
+	rm -f build/notarize.zip
+	ditto -c -k --sequesterRsrc --keepParent $(BUNDLE) build/notarize.zip
+	xcrun notarytool submit build/notarize.zip \
+		--keychain-profile "$(NOTARY_PROFILE)" --wait
+	@# The ticket is stapled to the app, because a zip cannot carry one. That is
+	@# also why the archive is rebuilt here rather than reused: the copy inside
+	@# the one we submitted has no ticket in it.
+	xcrun stapler staple $(BUNDLE)
+	xcrun stapler validate $(BUNDLE)
+	spctl -a -vvv -t install $(BUNDLE)
+	rm -f ReDrobo-app.zip
+	ditto -c -k --sequesterRsrc --keepParent $(BUNDLE) ReDrobo-app.zip
+	@echo
+	@echo "wrote $$(pwd)/ReDrobo-app.zip, notarized and stapled"
+	@echo "That one installs on a Mac nobody has prepared."
+
 # The offline checks. No hardware, no driver, no side effects: record decoding,
 # the status word tables, the redundancy derivation and the device identity
 # rules, against the values in docs/PROTOCOL.md.
@@ -165,11 +219,23 @@ signing: $(BUNDLE)
 # Diagnoses the usual reasons this refuses to run.
 doctor:
 	@echo "=== signing ==="
+	@printf "  building for    : %s\n" "$(if $(RELEASE),release (Developer ID),development)"
 	@printf "  identity in use : %s\n" "$(SIGN_ID)"
-	@if [ -f "$(PROFILE_APP)" ]; then echo "  app profile     : $(PROFILE_APP)"; \
-		else echo "  app profile     : MISSING"; fi
-	@if [ -f "$(PROFILE_DEXT)" ]; then echo "  dext profile    : $(PROFILE_DEXT)"; \
-		else echo "  dext profile    : MISSING"; fi
+	@printf "  timestamp       : %s\n" "$(TIMESTAMP)"
+	@echo
+	@echo "=== development profiles (self-serve, yours to make) ==="
+	@if [ -f "$(PROFILE_APP_DEV)" ]; then echo "  app             : $(PROFILE_APP_DEV)"; \
+		else echo "  app             : MISSING"; fi
+	@if [ -f "$(PROFILE_DEXT_DEV)" ]; then echo "  dext            : $(PROFILE_DEXT_DEV)"; \
+		else echo "  dext            : MISSING"; fi
+	@echo
+	@echo "=== release profiles (need capabilities granted by Apple) ==="
+	@printf "  Developer ID    : %s\n" \
+		"$$(security find-identity -v -p codesigning 2>/dev/null | awk -F'"' '/Developer ID Application/{print $$2; exit}')"
+	@if [ -f "$(PROFILE_APP_RELEASE)" ]; then echo "  app             : $(PROFILE_APP_RELEASE)"; \
+		else echo "  app             : MISSING"; fi
+	@if [ -f "$(PROFILE_DEXT_RELEASE)" ]; then echo "  dext            : $(PROFILE_DEXT_RELEASE)"; \
+		else echo "  dext            : MISSING"; fi
 	@echo
 	@echo "=== this Mac ==="
 	@printf "  SIP             : "; csrutil status | sed 's/System Integrity Protection status: //'
