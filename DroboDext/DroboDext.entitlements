@@ -26,5 +26,25 @@
 	<true/>
 	<key>com.apple.developer.driverkit.family.scsicontroller</key>
 	<true/>
+
+	<!--
+	  This one is here to work around a capability that cannot be self-served.
+
+	  The app used to carry com.apple.developer.driverkit.userclient-access,
+	  which names this driver and lets that one app, and only that one, open the
+	  user client. It is a managed capability ("DriverKit Communicates with
+	  Drivers" in the portal), so Apple has to grant it before it can appear in
+	  a provisioning profile, and AMFI SIGKILLs a development-signed app that
+	  carries an entitlement its profile does not grant.
+
+	  So the permission moves to the driver instead, which is what Apple's own
+	  DriverKit sample suggests doing for exactly this reason. The cost is that
+	  any app on the machine can now open the user client rather than one named
+	  app: looser than we want, acceptable on a development machine, and to be
+	  swapped back the day the request is granted. Portal capability:
+	  "DriverKit Allow Any UserClient (development)".
+	-->
+	<key>com.apple.developer.driverkit.allow-any-userclient-access</key>
+	<true/>
 </dict>
 </plist>

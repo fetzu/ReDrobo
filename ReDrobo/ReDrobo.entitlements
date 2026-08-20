@@ -6,10 +6,18 @@
 	<key>com.apple.developer.system-extension.install</key>
 	<true/>
 
-	<!-- Lets the app open the driver's user client. -->
-	<key>com.apple.developer.driverkit.userclient-access</key>
-	<array>
-		<string>org.redrobo.ReDrobo.DroboDext</string>
-	</array>
+	<!--
+	  Opening the driver's user client used to be authorised from here, with
+	  userclient-access naming the driver. That capability is managed and Apple
+	  has not granted it yet, so the driver carries allow-any-userclient-access
+	  instead (see DroboDext.entitlements for the full reasoning).
+
+	  Put this back, and take that one out, once the request comes through:
+
+		<key>com.apple.developer.driverkit.userclient-access</key>
+		<array>
+			<string>org.redrobo.ReDrobo.DroboDext</string>
+		</array>
+	-->
 </dict>
 </plist>
