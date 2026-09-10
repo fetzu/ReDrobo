@@ -137,8 +137,9 @@ jobs:
           # list is a development profile under the wrong filename, which signs
           # fine and then fails on every Mac but yours.
           for p in ReDrobo/*-DeveloperID.provisionprofile; do
-            security cms -D -i "$p" | plutil -p - | grep -q '"ProvisionsAllDevices" => 1' \
-              || { echo "$p is not a Developer ID profile"; exit 1; }
+            all=$(security cms -D -i "$p" \
+                  | plutil -extract ProvisionsAllDevices raw -o - - 2>/dev/null || echo absent)
+            [ "$all" = "true" ] || { echo "$p is not a Developer ID profile"; exit 1; }
           done
 
       - name: Build, sign, notarize, staple
