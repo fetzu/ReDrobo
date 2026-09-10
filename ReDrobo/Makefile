@@ -167,6 +167,18 @@ dist: $(BUNDLE)
 # password. Pass NOTARY_PROFILE if you called it something else.
 NOTARY_PROFILE ?= redrobo
 
+# A build machine has no keychain worth storing anything in, so CI hands
+# notarytool an App Store Connect API key instead: the .p8 file, its key ID and
+# the issuer ID. Set all three and they win; set none and it falls back to the
+# keychain profile above, which is what you want on a Mac you own. The key is a
+# credential in its own right, so it belongs in a secret and in a file the job
+# deletes on the way out, never in the repository.
+ifdef NOTARY_KEY
+NOTARY_AUTH := --key "$(NOTARY_KEY)" --key-id "$(NOTARY_KEY_ID)" --issuer "$(NOTARY_ISSUER)"
+else
+NOTARY_AUTH := --keychain-profile "$(NOTARY_PROFILE)"
+endif
+
 notarize: $(BUNDLE)
 	@if [ -z "$(RELEASE)" ]; then \
 		echo "Refusing: a notarized build has to be signed with Developer ID."; \
@@ -176,8 +188,7 @@ notarize: $(BUNDLE)
 	@mkdir -p build
 	rm -f build/notarize.zip
 	ditto -c -k --sequesterRsrc --keepParent $(BUNDLE) build/notarize.zip
-	xcrun notarytool submit build/notarize.zip \
-		--keychain-profile "$(NOTARY_PROFILE)" --wait
+	xcrun notarytool submit build/notarize.zip $(NOTARY_AUTH) --wait
 	@# The ticket is stapled to the app, because a zip cannot carry one. That is
 	@# also why the archive is rebuilt here rather than reused: the copy inside
 	@# the one we submitted has no ticket in it.

@@ -90,10 +90,12 @@ same binary re-signed with no entitlements at all launches normally.
 you want it rather than the summary here, because every step of it has a trap
 that announces itself as something else. In outline:
 
-1. Two App IDs, one for the app with **System Extension**, one for the driver
-   with **DriverKit (development)**, **DriverKit Family SCSIController
-   (development)** and **DriverKit Allow Any UserClient (development)**. All
-   checkboxes, all granted to anybody who ticks them.
+1. Two App IDs, one for the app with **System Extension** and **DriverKit
+   UserClient Access**, one for the driver with **DriverKit (development)** and
+   **DriverKit Family SCSIController (development)**. Everything tagged
+   "(development)" is a checkbox granted to anybody who ticks it. UserClient
+   Access is the one Apple has to grant by hand, and section 2 of
+   PROVISIONING.md is the way round it while you wait.
 2. Every Mac it has to run on, registered under Devices by its Provisioning
    UDID.
 3. Two profiles, **DriverKit App Development** for the driver and ordinary macOS

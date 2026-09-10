@@ -21,7 +21,14 @@ DEXT_ID   := org.redrobo.ReDrobo.DroboDext
 BUNDLE    := $(DEXT_ID).dext
 DKPLAT    := /Applications/Xcode.app/Contents/Developer/Platforms/DriverKit.platform
 SDK       := $(DKPLAT)/Developer/SDKs/DriverKit.sdk
-DKVER     := 25.5
+# Deployment target, not the SDK: built against whatever DriverKit.sdk Xcode
+# has, but asking to run on the oldest that will take it. DriverKit 25.x tracks
+# macOS 26.x, so 25.0 covers all of macOS 26 while the SDK stays current. It
+# was 25.5 and that quietly meant macOS 26.5 or newer, which is the wrong end
+# of the range: the Intel Macs this is for are stuck on 26 and not necessarily
+# on its latest point release. Check what came out with:
+#     xcrun vtool -show-build $(BUNDLE)/$(DEXT_ID)
+DKVER     := 25.0
 FRAMEWORKS := $(SDK)/System/DriverKit/System/Library/Frameworks
 
 # The build number lives in Info.plist and nowhere else. It reaches the code as

@@ -7,17 +7,24 @@
 	<true/>
 
 	<!--
-	  Opening the driver's user client used to be authorised from here, with
-	  userclient-access naming the driver. That capability is managed and Apple
-	  has not granted it yet, so the driver carries allow-any-userclient-access
-	  instead (see DroboDext.entitlements for the full reasoning).
+	  Granted by Apple on 2026-09-10, so the permission is back where it
+	  belongs: one app, named here, may open the driver's user client, and
+	  nothing else on the machine may. The driver carried
+	  allow-any-userclient-access for as long as the request was pending, which
+	  was the loose version of the same thing.
 
-	  Put this back, and take that one out, once the request comes through:
+	  Portal capability: "DriverKit UserClient Access", ticked on this App ID
+	  rather than the driver's, configured with the driver's bundle ID.
 
-		<key>com.apple.developer.driverkit.userclient-access</key>
-		<array>
-			<string>org.redrobo.ReDrobo.DroboDext</string>
-		</array>
+	  Both profiles have to grant it before this can be signed, so the
+	  development pair needs regenerating as well as the Developer ID pair. Sign
+	  against a profile that does not grant it and AMFI SIGKILLs the app at
+	  exec, which reads as "Taskgated Invalid Signature" and looks like a broken
+	  signature rather than a missing capability.
 	-->
+	<key>com.apple.developer.driverkit.userclient-access</key>
+	<array>
+		<string>org.redrobo.ReDrobo.DroboDext</string>
+	</array>
 </dict>
 </plist>

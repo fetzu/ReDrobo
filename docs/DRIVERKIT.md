@@ -287,6 +287,12 @@ Apple come back on that same tab, which is a real improvement on the old form
 (which answered by e-mail, or did not answer). Account Holder role required, and
 the App ID has to exist before you can request anything against it.
 
+All three came back granted on 2026-09-10, three weeks after asking, with no
+questions and no conditions attached. The entitlements files carry the tight
+arrangement again from that day: `userclient-access` on the app naming the
+driver, and `allow-any-userclient-access` gone from the driver.
+[PROVISIONING.md](PROVISIONING.md#once-they-are-granted) picks it up from there.
+
 Do not go looking for the form Apple's own documentation points at.
 `developer.apple.com/contact/request/system-extension/` is linked from the
 DriverKit documentation and from Apple's System Extensions page, and it has been

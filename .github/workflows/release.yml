@@ -1,0 +1,202 @@
+# Builds, signs and notarizes a Developer ID ReDrobo, then hangs the zip off a
+# GitHub release.
+#
+# It does nothing `make RELEASE=1 notarize` does not do on a Mac you own. The
+# only difference is that a runner arrives with no keychain, no certificate and
+# no credentials, so all three are assembled at the start of the job and taken
+# back out at the end.
+#
+# To cut a release: bump the version, commit, tag `v1.2.3`, push the tag. The
+# tag has to match CFBundleShortVersionString or the job stops before it signs
+# anything. Running it by hand from the Actions tab builds and notarizes without
+# publishing, which is how to test a change to this file.
+#
+# Seven secrets, made once. docs/PROVISIONING.md says where each comes from:
+#
+#   DEVELOPER_ID_CERT_P12       base64 of the exported .p12
+#   DEVELOPER_ID_CERT_PASSWORD  whatever you set while exporting it
+#   PROFILE_APP_DEVELOPER_ID    base64 of ReDrobo-DeveloperID.provisionprofile
+#   PROFILE_DEXT_DEVELOPER_ID   base64 of DroboDext-DeveloperID.provisionprofile
+#   NOTARY_KEY_P8               base64 of the App Store Connect .p8
+#   NOTARY_KEY_ID               its Key ID
+#   NOTARY_ISSUER_ID            the Issuer ID from the same page
+#
+# Be clear about what that adds up to: anyone who can run this workflow can sign
+# anything at all as you, and Gatekeeper will believe it. Hence the protected
+# environment, the pinned actions, and tags rather than every push.
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    # Pinned, never macos-latest: the label moves and takes the SDK with it.
+    # This image carries Xcode 26.6 (17F113) and DriverKit 25.5, which is the
+    # toolchain the driver was developed and proven against.
+    runs-on: macos-26
+    timeout-minutes: 45
+    environment: release
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Fail here rather than three steps later
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          echo "DriverKit SDK: $(xcrun --sdk driverkit --show-sdk-version)"
+          # iig generates the driver's glue. No DriverKit platform, no build,
+          # and the error it produces on its own is a wall of missing headers.
+          test -d /Applications/Xcode.app/Contents/Developer/Platforms/DriverKit.platform \
+            || { echo "no DriverKit platform in this Xcode"; exit 1; }
+          xcrun -f iig
+
+      - name: The tag has to be the version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          set -euo pipefail
+          app=$(plutil -extract CFBundleShortVersionString raw -o - ReDrobo/Info.plist)
+          dext=$(plutil -extract CFBundleShortVersionString raw -o - DroboDext/Info.plist)
+          appbuild=$(plutil -extract CFBundleVersion raw -o - ReDrobo/Info.plist)
+          dextbuild=$(plutil -extract CFBundleVersion raw -o - DroboDext/Info.plist)
+          tag="${GITHUB_REF_NAME#v}"
+          echo "tag $tag / app $app ($appbuild) / dext $dext ($dextbuild)"
+          [ "$app" = "$tag" ]  || { echo "tag and app version disagree"; exit 1; }
+          [ "$dext" = "$tag" ] || { echo "tag and driver version disagree"; exit 1; }
+          # The app looks the driver's build number up and shows it, so the two
+          # drifting apart makes the diagnostics lie about what is running.
+          [ "$appbuild" = "$dextbuild" ] || { echo "build numbers disagree"; exit 1; }
+
+      - name: Offline checks
+        # Record decoding, status words, redundancy, device identity. No
+        # hardware and no driver, so this is everything CI can honestly assert.
+        run: make -C ReDrobo check
+
+      - name: Assemble the signing material
+        env:
+          CERT_P12: ${{ secrets.DEVELOPER_ID_CERT_P12 }}
+          CERT_PASSWORD: ${{ secrets.DEVELOPER_ID_CERT_PASSWORD }}
+          PROFILE_APP: ${{ secrets.PROFILE_APP_DEVELOPER_ID }}
+          PROFILE_DEXT: ${{ secrets.PROFILE_DEXT_DEVELOPER_ID }}
+          NOTARY_KEY_P8: ${{ secrets.NOTARY_KEY_P8 }}
+        run: |
+          set -euo pipefail
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          password="$(openssl rand -base64 24)"
+          echo "KEYCHAIN=$keychain" >> "$GITHUB_ENV"
+
+          security create-keychain -p "$password" "$keychain"
+          # Locks after an hour, which outlives the job and nothing else.
+          security set-keychain-settings -lut 3600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+
+          printf '%s' "$CERT_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -k "$keychain" -P "$CERT_PASSWORD" \
+            -T /usr/bin/codesign -T /usr/bin/security
+          rm -f "$RUNNER_TEMP/cert.p12"
+
+          # Without this codesign puts up a GUI prompt for permission to use the
+          # key, on a machine with nobody in front of it, and the job hangs until
+          # it times out.
+          security set-key-partition-list -S apple-tool:,apple:,codesign: \
+            -s -k "$password" "$keychain" >/dev/null
+          security list-keychains -d user -s "$keychain" login.keychain-db
+
+          printf '%s' "$PROFILE_APP"  | base64 --decode > ReDrobo/ReDrobo-DeveloperID.provisionprofile
+          printf '%s' "$PROFILE_DEXT" | base64 --decode > ReDrobo/DroboDext-DeveloperID.provisionprofile
+          printf '%s' "$NOTARY_KEY_P8" | base64 --decode > "$RUNNER_TEMP/notary.p8"
+
+          # Exactly one, or the Makefile's awk picks whichever came first.
+          found=$(security find-identity -v -p codesigning | grep -c "Developer ID Application" || true)
+          security find-identity -v -p codesigning
+          [ "$found" = "1" ] || { echo "expected one Developer ID identity, found $found"; exit 1; }
+
+      - name: The profiles have to grant what we are about to sign
+        run: |
+          set -euo pipefail
+          for p in ReDrobo/ReDrobo-DeveloperID.provisionprofile \
+                   ReDrobo/DroboDext-DeveloperID.provisionprofile; do
+            echo "=== $p"
+            security cms -D -i "$p" | plutil -p - \
+              | grep -E '"(ExpirationDate|ProvisionsAllDevices|com\.apple\.developer[^"]*)"'
+          done
+          # A Developer ID profile provisions every device. One carrying a device
+          # list is a development profile under the wrong filename, which signs
+          # fine and then fails on every Mac but yours.
+          for p in ReDrobo/*-DeveloperID.provisionprofile; do
+            security cms -D -i "$p" | plutil -p - | grep -q '"ProvisionsAllDevices" => 1' \
+              || { echo "$p is not a Developer ID profile"; exit 1; }
+          done
+
+      - name: Build, sign, notarize, staple
+        env:
+          NOTARY_KEY: ${{ runner.temp }}/notary.p8
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER: ${{ secrets.NOTARY_ISSUER_ID }}
+        run: make -C ReDrobo RELEASE=1 notarize
+
+      - name: Say what came out
+        run: |
+          set -euo pipefail
+          cd ReDrobo
+          dext=ReDrobo.app/Contents/Library/SystemExtensions/org.redrobo.ReDrobo.DroboDext.dext
+          codesign -dvvv ReDrobo.app 2>&1 | grep -E '^Authority|Timestamp|flags='
+          codesign --test-requirement="=notarized" --verify -v ReDrobo.app
+          xcrun stapler validate ReDrobo.app
+          echo "--- app entitlements";  codesign -d --entitlements - --xml ReDrobo.app | plutil -p -
+          echo "--- dext entitlements"; codesign -d --entitlements - --xml "$dext" | plutil -p -
+          echo "--- deployment targets"
+          xcrun vtool -show-build "$dext/org.redrobo.ReDrobo.DroboDext" | grep -E 'architecture|minos'
+          xcrun vtool -show-build ReDrobo.app/Contents/MacOS/ReDrobo | grep -E 'architecture|minos'
+
+      - name: Name it after the version
+        id: package
+        run: |
+          set -euo pipefail
+          version=$(plutil -extract CFBundleShortVersionString raw -o - ReDrobo/Info.plist)
+          build=$(plutil -extract CFBundleVersion raw -o - ReDrobo/Info.plist)
+          mv ReDrobo/ReDrobo-app.zip "ReDrobo-$version.zip"
+          echo "zip=ReDrobo-$version.zip" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          shasum -a 256 "ReDrobo-$version.zip"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.package.outputs.zip }}
+          path: ${{ steps.package.outputs.zip }}
+          if-no-files-found: error
+
+      # Pre-release on purpose. Nothing in this job has touched an enclosure, so
+      # what it produces is a build that is correctly signed and entirely
+      # unproven. Install it next to a Drobo, confirm the driver starts and
+      # reads, then promote it to latest in the releases page.
+      - name: Publish it as a pre-release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create "$GITHUB_REF_NAME" "${{ steps.package.outputs.zip }}" \
+            --title "ReDrobo ${{ steps.package.outputs.version }} (build ${{ steps.package.outputs.build }})" \
+            --generate-notes \
+            --prerelease
+
+      - name: Take the credentials back out
+        if: always()
+        run: |
+          security delete-keychain "${KEYCHAIN:-$RUNNER_TEMP/signing.keychain-db}" 2>/dev/null || true
+          rm -f "$RUNNER_TEMP/notary.p8" ReDrobo/*.provisionprofile

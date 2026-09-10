@@ -5,11 +5,12 @@ SIP on, no boot-args, the Mac exactly as Apple shipped it. This is route A from
 [TESTING.md](TESTING.md), written out in full, because the developer portal is
 where all the traps are and not one of them announces itself.
 
-An hour the first time, and everything here is self-serve. Nothing has to be
-requested from Apple, nobody has to approve anything, and no part of it is
-gated on the DriverKit entitlement request that the rest of the internet will
-tell you is mandatory. It is not, for development. It is for distribution, which
-is [a different section](#what-this-does-not-get-you).
+An hour the first time, and almost all of it is self-serve. One capability has
+to be requested from Apple, and [section 2](#2-the-userclient-trap) is the way
+round it while you wait. Nothing else needs anybody's approval, and none of it
+is gated on the DriverKit entitlement request that the rest of the internet will
+tell you is mandatory. That one is mandatory for distribution, which is
+[a different section](#what-this-does-not-get-you).
 
 ## What you need
 
@@ -55,7 +56,7 @@ Seven files carry it:
 | `DroboDext/Makefile` | the same name again |
 | `ReDrobo/DroboIOKit.swift` | the identifier the app looks the driver up by |
 | `ReDrobo/Log.swift` | the `os_log` subsystem |
-| `ReDrobo/ReDrobo.entitlements` | inside a comment, in the snippet to restore later |
+| `ReDrobo/ReDrobo.entitlements` | the driver's identifier, in the `userclient-access` array |
 
 A find and replace of `org.redrobo` covers all of it.
 
@@ -67,12 +68,15 @@ bundle ID, not wildcard. Do it twice.
 **For the app**, tick:
 
 - **System Extension**
+- **DriverKit UserClient Access**, with the driver's bundle ID in the UserClient
+  Bundle IDs field. This is the managed one: it appears on the App ID only once
+  Apple has granted it, and [section 2](#2-the-userclient-trap) is what to do
+  until then.
 
 **For the driver**, tick:
 
 - **DriverKit (development)**
 - **DriverKit Family SCSIController (development)**
-- **DriverKit Allow Any UserClient (development)**
 
 Everything tagged "(development)" in that list is yours for the ticking. That
 includes the family entitlement, which is the one this whole project spent an
@@ -87,23 +91,28 @@ Deliberately **not** ticked:
   `family.scsicontroller` alone. It is also the entitlement scoped to a specific
   USB vendor and product ID, which drags the whole "what is your vendor ID"
   question in behind it. Leave it.
-- **DriverKit Communicates with Drivers.** See the next section, it is the one
-  real trap here.
+- **DriverKit Communicates with Drivers.** It reads like **DriverKit UserClient
+  Access** and is a separate row, which a granted account shows alongside it.
+  Step 6 decodes the profile and settles which key you actually got:
+  `userclient-access` is the one the app is signed with.
+- **DriverKit PCI (development).** Self-serve, and not this driver either.
 - Everything else. A capability you do not sign against is a capability that
   cannot fail.
 
 ## 2. The UserClient trap
 
-The natural design is `com.apple.developer.driverkit.userclient-access` on the
-**app**, naming the driver, so that exactly one app may open the user client.
-That is the tight, correct arrangement, and you cannot have it either.
+The tight arrangement is `com.apple.developer.driverkit.userclient-access` on
+the **app**, naming the driver, so that exactly one app may open the user
+client. That is what both entitlements files carry today, and it is the one
+thing on this page you cannot simply tick.
 
-In the portal it is called **DriverKit Communicates with Drivers**, and you will
-notice it is the one row in that list with no "(development)" suffix and no
-"Development only" note. That means it is **managed**: Apple grants it by hand,
-on request, and it therefore cannot appear in a profile you made yourself.
+**DriverKit UserClient Access** is the row with no "(development)" suffix and no
+"Development only" note, which makes it **managed**: Apple grants it by hand, on
+request, and until they do it cannot appear in a profile you made yourself.
+[Asking for it](#asking-for-them) is at the bottom of this page. For this
+project it took three weeks.
 
-This matters because of how AMFI works. Sign a binary with a restricted
+That matters because of how AMFI works. Sign a binary with a restricted
 entitlement its embedded profile does not grant and the process is SIGKILLed the
 instant it execs. The crash report says:
 
@@ -115,15 +124,34 @@ with an empty `codeSigningID`, which reads exactly like a broken signature and
 is nothing of the sort. The signature is fine. The entitlement is not
 authorised, so nothing about the binary is trusted.
 
-So the permission moves to the driver instead, as
-`com.apple.developer.driverkit.allow-any-userclient-access`, which is what
-Apple's own DriverKit sample project suggests for precisely this reason. The
-cost is real but bounded: any app on the machine may open the user client,
-rather than one named app. On a machine where you have deliberately installed a
-driver you built yourself, that is an acceptable trade.
+### While you wait
 
-Both entitlements files carry the reasoning inline, along with the exact snippet
-to swap back if the grant ever arrives.
+The permission can move to the driver instead, as
+`com.apple.developer.driverkit.allow-any-userclient-access`, which is what
+Apple's own DriverKit sample project suggests for precisely this reason. It is
+self-serve, **DriverKit Allow Any UserClient (development)** in the portal, and
+it is what this repo shipped for as long as the request was pending. The cost is
+real but bounded: any app on the machine may open the user client, rather than
+one named app. On a machine where you have deliberately installed a driver you
+built yourself, that is an acceptable trade.
+
+Two edits, and they go together:
+
+- in `ReDrobo/ReDrobo.entitlements`, delete the
+  `com.apple.developer.driverkit.userclient-access` key and the array under it
+- in `DroboDext/DroboDext.entitlements`, add
+  `com.apple.developer.driverkit.allow-any-userclient-access` set to `<true/>`,
+  where the comment says it used to be
+
+Then tick **DriverKit Allow Any UserClient (development)** on the driver's App
+ID instead of **DriverKit UserClient Access** on the app's, and carry on with
+section 3.
+
+This route runs out at distribution. The portal offers no non-development
+counterpart, so no Developer ID profile will carry the key and a build signed
+this way is refused by the notary service. It gets you every Mac you have
+registered and not one more, which is the same limit development profiles have
+anyway.
 
 ## 3. Register every Mac
 
@@ -226,8 +254,16 @@ codesign -d --entitlements - --xml ReDrobo.app/Contents/Library/SystemExtensions
   2>/dev/null | plutil -p -
 ```
 
-Three `driverkit` keys, matching the three in the profile. Any key here that is
-not in the profile is a SIGKILL waiting to happen.
+Two `driverkit` keys, `driverkit` and `family.scsicontroller`, matching two of
+the ones in the profile. Then the app, which should carry
+`system-extension.install` and `userclient-access` naming the driver:
+
+```bash
+codesign -d --entitlements - --xml ReDrobo.app | plutil -p -
+```
+
+The profile may grant more than the binary claims and that is fine. A key on the
+binary that the profile does not grant is a SIGKILL waiting to happen.
 
 ## 8. Install and activate
 
@@ -288,9 +324,160 @@ The build system already knows how:
 make RELEASE=1 notarize
 ```
 
-and will refuse until the profiles exist. Requesting the capabilities is done
-from the App ID's **Capability Requests** tab in the portal, and
-[DRIVERKIT.md](DRIVERKIT.md) covers what to ask for and what to expect.
+and will refuse until the profiles exist.
+
+### Asking for them
+
+Identifiers, the App ID, the **Capability Requests** tab, Request. Account
+Holder role only, and the App ID has to exist first.
+
+Two requests, because `userclient-access` is an app-side entitlement and lives
+on the app's App ID rather than the driver's:
+
+| On | Which DriverKit entitlements do you need? | UserClient Bundle IDs |
+|---|---|---|
+| the driver's App ID | DriverKit, DriverKit Family SCSIController | the driver's bundle ID |
+| the app's App ID | UserClient Access | the driver's bundle ID |
+
+Nothing to request for `com.apple.developer.system-extension.install`. System
+Extension is an ordinary capability you tick.
+
+Ask for UserClient Access rather than Allow Any UserClient. It is the tighter of
+the two, it is the arrangement the entitlements files want to go back to, and
+leading with the loose one makes the whole request look worse than it is. Fall
+back to Allow Any UserClient only if the tight one is refused.
+
+In the description, say what the driver does and does not do: read-only,
+`MODE SENSE(10)` on the vendor page, standard opcodes, never the vendor-specific
+range, matching on `IOSCSIPeripheralDeviceNub` rather than by USB vendor and
+product ID. Say plainly that you are not the hardware vendor and that Drobo was
+liquidated in 2023. Apple's DTS has said on the record that they approve
+requests from third parties and lean towards approving rather than refusing, so
+the honest version of the story is also the strong one. Point at a driver that
+already loads and reads, which is a better letter than a proposal.
+
+**If the Request button lands on a 404**, and it may: it links to
+`developer.apple.com/contact/request/system-extension/`, which Apple retired
+without updating the link, and the same dead link is still in Apple's own
+DriverKit documentation and on their System Extensions page. It is not
+necessarily broken for you. Try another browser first, signing in at
+`developer.apple.com/account` before navigating rather than following a
+bookmark: this was a 404 in one browser and the working form in Safari on the
+same machine, the same afternoon. If it survives that, Apple's own escalation
+for it is developer.apple.com/contact, then Development and Technical, then
+Entitlements, which is free and does not consume a code-level support incident.
+
+Expect weeks. Status and any notes from Apple come back on the same Capability
+Requests tab.
+
+### Once they are granted
+
+Nothing arrives in the post: the capabilities simply turn up on the App IDs, and
+everything from there is the same portal work as above with different words on
+the buttons.
+
+1. **Tick the granted rows.** On the driver's App ID, **DriverKit** and
+   **DriverKit Family SCSI Controller**, the two without the "(development)"
+   suffix. On the app's, **DriverKit UserClient Access**, with the driver's
+   bundle ID in the UserClient Bundle IDs field. Leave the development rows
+   ticked; they do not conflict, and the development profiles still want them.
+2. **Regenerate the development profiles too**, not only the new ones. A profile
+   is a snapshot, and the app is signed with `userclient-access` now, which a
+   profile generated before the grant does not carry. Same SIGKILL as ever, on
+   your own Mac this time.
+3. **Two more profiles**, Profiles ▸ +, under Distribution rather than
+   Development: the Developer ID type, once for each App ID, taking whichever
+   DriverKit variant of it the portal offers for the driver. Neither carries a
+   device list, which is the entire point of them. Download both and drop them
+   next to the Makefile as `ReDrobo-DeveloperID.provisionprofile` and
+   `DroboDext-DeveloperID.provisionprofile`, exactly those names.
+4. **Store the notary credentials once.** They live in the keychain and never in
+   the repo:
+
+   ```bash
+   xcrun notarytool store-credentials redrobo
+   ```
+
+   It asks for a profile name, which is what `redrobo` is here, your Apple ID,
+   the team ID, and an app-specific password made at appleid.apple.com. Pass
+   `NOTARY_PROFILE=` to the Makefile if you name it something else.
+
+5. **Build it:**
+
+   ```bash
+   cd ReDrobo && make doctor && make bump && make RELEASE=1 notarize
+   ```
+
+`make doctor` reports both sets of profiles and both identities, and the release
+set should stop saying MISSING. Then `notarize` submits the zip, waits, staples
+the ticket to the app, validates it, runs `spctl` against it and writes
+`ReDrobo-app.zip`. A few minutes, most of it Apple's.
+
+Verify it somewhere honest. Not this Mac, and not any Mac registered under
+Devices or carrying a development build: those all have reasons to accept the
+app that a stranger's machine will not have. A Mac with SIP on that has never
+seen this project is the only run that proves anything.
+
+### Releasing from CI
+
+Once that works by hand, [.github/workflows/release.yml](../.github/workflows/release.yml)
+does the same thing on a tag: bump the version, commit, push `v1.2.3`, and it
+builds, signs, notarizes, staples and publishes a pre-release with the zip
+attached. It runs on `macos-26`, whose default Xcode is 26.6 with DriverKit
+25.5, the same toolchain this was developed against.
+
+It needs seven secrets, made once, in a repository **environment** called
+`release`: Settings ▸ Environments ▸ New environment, then add them there rather
+than as plain repository secrets, so the job can be put behind a review.
+
+**The certificate.** Keychain Access, and specifically the **My Certificates**
+tab rather than All Items or Certificates: only that category pairs a
+certificate with its private key, and a `.p12` is exactly that pair, so the
+format stays greyed out anywhere else. Find *Developer ID Application*, select
+the row with the disclosure triangle, File ▸ Export Items, Personal Information
+Exchange (.p12). It asks for the login keychain password to release the key,
+then for a password to protect the file. Export that one row, not all your
+identities, and give it a real password.
+
+```bash
+base64 -i DeveloperID.p12 | pbcopy      # -> DEVELOPER_ID_CERT_P12
+```
+
+and the password itself goes in `DEVELOPER_ID_CERT_PASSWORD`. Delete the `.p12`
+afterwards or keep it somewhere you would keep a house key, because that is
+what it is: whoever holds it and the password signs as you.
+
+**The two profiles**, the same files the Makefile already uses:
+
+```bash
+base64 -i ReDrobo/ReDrobo-DeveloperID.provisionprofile | pbcopy   # -> PROFILE_APP_DEVELOPER_ID
+base64 -i ReDrobo/DroboDext-DeveloperID.provisionprofile | pbcopy # -> PROFILE_DEXT_DEVELOPER_ID
+```
+
+**The notary credentials.** An app-specific password is tied to your Apple ID
+and cannot be scoped, so CI gets an App Store Connect API key instead:
+appstoreconnect.apple.com ▸ Users and Access ▸ Integrations ▸ App Store Connect
+API ▸ Team Keys ▸ +. Access **Developer** is enough to notarize; if notarytool
+answers 403, raise it to App Manager. The `.p8` downloads exactly once and is
+never offered again.
+
+```bash
+base64 -i AuthKey_XXXXXXXXXX.p8 | pbcopy   # -> NOTARY_KEY_P8
+```
+
+`NOTARY_KEY_ID` is the Key ID from that table and `NOTARY_ISSUER_ID` the Issuer
+ID above it. The Makefile takes these three as `NOTARY_KEY`, `NOTARY_KEY_ID` and
+`NOTARY_ISSUER`, and falls back to the keychain profile when they are unset, so
+your own `make RELEASE=1 notarize` is unaffected.
+
+Run the workflow by hand from the Actions tab first. Without a tag it builds and
+notarizes and stops, leaving the zip as a run artifact, which is how to test a
+change to it without publishing anything.
+
+The release it makes is a **pre-release**, deliberately. CI has never seen an
+enclosure, so what comes out is correctly signed and completely unproven.
+Install it next to a Drobo, check the driver starts and reads, and only then
+promote it.
 
 The other thing to know before you rely on any of this: a development profile
 lasts a year, tied to your Apple Development certificate, and stops working the
