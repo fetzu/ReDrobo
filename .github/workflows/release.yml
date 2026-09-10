@@ -24,6 +24,10 @@
 # Be clear about what that adds up to: anyone who can run this workflow can sign
 # anything at all as you, and Gatekeeper will believe it. Hence the protected
 # environment, the pinned actions, and tags rather than every push.
+#
+# Both actions are pinned to a commit rather than a tag, because a tag can be
+# moved and a commit cannot. The comment next to each is the version that commit
+# was, and it has to be updated by hand when the pin is.
 
 name: Release
 
@@ -51,7 +55,7 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Fail here rather than three steps later
         run: |
@@ -175,7 +179,7 @@ jobs:
           echo "build=$build" >> "$GITHUB_OUTPUT"
           shasum -a 256 "ReDrobo-$version.zip"
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: ${{ steps.package.outputs.zip }}
           path: ${{ steps.package.outputs.zip }}
