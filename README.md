@@ -46,29 +46,32 @@ serial, firmware revision and wear.*
 
 Read this bit before you move straight on into installing.
 
-**You have to make macOS accept the driver, and there are two ways to do it.**
-A driver extension only loads if the system has a reason to trust its
-entitlements. Which route you take comes down to whether you have a paid Apple
-developer account.
+**You have to make macOS accept the driver.** A driver extension only loads if
+the system has a reason to trust its entitlements, and there are three ways to
+give it one.
 
-*With one*, you sign your build against a development provisioning profile you
-make yourself. The DriverKit capabilities involved turn out to be self-serve:
-nothing to request, nobody to wait for, about an hour on Apple's portal. The Mac
-stays exactly as Apple shipped it, System Integrity Protection on, no boot-args,
-nothing weakened. Confirmed on macOS 26.6.2 with SIP enabled: the driver
+*Install a release.* The builds on the
+[releases page](https://github.com/fetzu/ReDrobo/releases) are signed with a
+Developer ID certificate and notarized, so they install on a Mac in the state
+Apple shipped it: System Integrity Protection on, no boot-args, nothing
+weakened, nothing to sign yourself. That needed the managed DriverKit
+entitlements, which Apple grants by hand and took three weeks to arrive. They
+have arrived, so this is the ordinary way in now.
+
+*Sign it yourself*, if you have a paid Apple developer account and would rather
+run a binary you built. The development capabilities are self-serve: nothing to
+request, nobody to wait for, about an hour on Apple's portal, and again the Mac
+stays exactly as it was. Confirmed on macOS 26.6.2 with SIP enabled: the driver
 installs, activates, matches a 5D and reads it.
-[docs/PROVISIONING.md](docs/PROVISIONING.md) walks through it.
+[docs/PROVISIONING.md](docs/PROVISIONING.md) walks through it. A development
+profile covers the Macs listed in it and no others, so what you build that way
+is of no use to anybody else.
 
-*Without one*, the Mac has to be told to stop checking instead: SIP off, and
-AMFI told to look the other way. That works for anybody and costs nothing, but
-it is a real reduction in security for the whole machine (not just for ReDrobo),
-so: use a spare Mac. The setup assistant walks you through it and puts it back
+*Or turn the checks off*, which needs no account at all: SIP off, and AMFI told
+to look the other way. That works for anybody and costs nothing, but it is a
+real reduction in security for the whole machine (not just for ReDrobo), so: use
+a spare Mac. The setup assistant walks you through it and puts it back
 afterwards, but it cannot make it safe.
-
-**Either way you sign it yourself.** A development profile covers the machines
-listed in it and nothing else, so a build handed to you is no use. A signed and
-notarized ReDrobo that installs on any Mac needs the same entitlements granted
-for distribution, which is Apple's decision rather than mine.
 
 **It has been tested on exactly one enclosure**, a Drobo 5D on firmware 4.2.3,
 by one person, on one Mac mini. The driver carries all 26 Vendor/Product pairs
@@ -106,6 +109,21 @@ python3 tools/drobo-space.py
 No driver, no SIP changes, no developer account. It will not tell you about a
 failing disk, but it does stop the array filling up behind your back, which is
 the part that actually bites.
+
+## Installing
+
+Take the zip from the [releases page](https://github.com/fetzu/ReDrobo/releases),
+then:
+
+1. Unzip it and move `ReDrobo.app` into `/Applications`. macOS refuses to
+   activate a driver extension carried by an app anywhere else, so this one is
+   not negotiable.
+2. Open it. The setup assistant asks you to approve the driver under System
+   Settings ▸ General ▸ Login Items & Extensions ▸ Driver Extensions.
+3. Restart the Mac. Until you do, the system keeps running whatever driver it
+   was running before, which is usually none at all.
+
+Building it yourself instead is below.
 
 ## Building
 
