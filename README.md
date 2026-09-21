@@ -42,42 +42,41 @@ serial, firmware revision and wear.*
 - A menu bar item, and notifications when something changes (as opposed to
   notifications when something merely is)
 
+## Installing
+
+Grab the zip from the [releases page](https://github.com/fetzu/ReDrobo/releases),
+then:
+
+1. Unzip it and move `ReDrobo.app` into `/Applications`. macOS refuses to
+   activate a driver extension carried by an app anywhere else, so this one is
+   not negotiable.
+2. Open it. The setup assistant asks you to approve the driver under System
+   Settings ▸ General ▸ Login Items & Extensions ▸ Driver Extensions.
+3. Restart the Mac. Until you do, the system keeps running whatever driver it
+   was running before, which is usually none at all.
+
+That is all of it. System Integrity Protection stays on, no boot-args, no
+developer account, nothing to sign yourself and nothing about the machine to
+weaken: the releases are signed with a Developer ID certificate and notarized,
+so they install on a Mac in the state Apple shipped it. That needed the managed
+DriverKit entitlements, which Apple grants by hand and took three weeks to
+arrive; they landed on 10.09.2026 and every release since is built, signed,
+notarized and stapled off a tag by
+[CI](.github/workflows/release.yml).
+
+Universal (Apple Silicon and Intel), macOS 26 or newer. Which is the point,
+really: the Intel Macs stuck without a Dashboard are the ones that needed this.
+
+Building and signing it yourself is still perfectly possible and is
+[further down](#building).
+
 ## Caveats
 
-Read this bit before you move straight on into installing.
-
-**You have to make macOS accept the driver.** A driver extension only loads if
-the system has a reason to trust its entitlements, and there are three ways to
-give it one.
-
-*Install a release.* The builds on the
-[releases page](https://github.com/fetzu/ReDrobo/releases) are signed with a
-Developer ID certificate and notarized, so they install on a Mac in the state
-Apple shipped it: System Integrity Protection on, no boot-args, nothing
-weakened, nothing to sign yourself. That needed the managed DriverKit
-entitlements, which Apple grants by hand and took three weeks to arrive. They
-have arrived, so this is the ordinary way in now.
-
-*Sign it yourself*, if you have a paid Apple developer account and would rather
-run a binary you built. The development capabilities are self-serve: nothing to
-request, nobody to wait for, about an hour on Apple's portal, and again the Mac
-stays exactly as it was. Confirmed on macOS 26.6.2 with SIP enabled: the driver
-installs, activates, matches a 5D and reads it.
-[docs/PROVISIONING.md](docs/PROVISIONING.md) walks through it. A development
-profile covers the Macs listed in it and no others, so what you build that way
-is of no use to anybody else.
-
-*Or turn the checks off*, which needs no account at all: SIP off, and AMFI told
-to look the other way. That works for anybody and costs nothing, but it is a
-real reduction in security for the whole machine (not just for ReDrobo), so: use
-a spare Mac. The setup assistant walks you through it and puts it back
-afterwards, but it cannot make it safe.
-
 **It has been tested on exactly one enclosure**, a Drobo 5D on firmware 4.2.3,
-by one person, on one Mac mini. The driver carries all 26 Vendor/Product pairs
-Drobo's own kext matched on, so the other USB models should be picked up..
-should, not does. The Thunderbolt and iSCSI ones cannot work at all (they
-needed a virtual SCSI HBA kext, and DriverKit has no equivalent).
+by one person. The driver carries all 26 Vendor/Product pairs Drobo's own kext
+matched on, so the other USB models should be picked up.. should, not does. The
+Thunderbolt and iSCSI ones cannot work at all (they needed a virtual SCSI HBA
+kext, and DriverKit has no equivalent).
 
 **It only reads.** No settings, no rename, no standby, no format, no firmware
 update. The write protocol is decoded and deliberately not implemented; the
@@ -96,6 +95,23 @@ only be read by another Drobo, so if the enclosure dies nothing here helps.
 Keep a backup that is not on a Drobo: that was true before Drobo folded, and it
 is more true now.
 
+## Project status
+
+Done, for now. It reads the array, it ships signed, it installs on a Mac nobody
+had to tamper with first, and that was the entire brief – so no further
+development is planned.
+
+Which is not the polite version of "abandoned": the thing runs here every day,
+and if I get an itch I will pick it back up for fun (feature-flag writes are
+already decoded and would be the obvious place to start, see
+[docs/WRITING.md](docs/WRITING.md)). Just do not hold your breath waiting for a
+roadmap, because there is none.
+
+Issues and pull requests are welcome, answers may be slow. The single most
+useful thing anybody can send is a report from a model that is *not* a 5D:
+26 Vendor/Product pairs are in the driver and exactly one of them has ever met
+a real enclosure.
+
 ## If all you want is the real free space
 
 Then you do not need any of this. macOS reports *used* space correctly, only
@@ -106,29 +122,17 @@ python3 tools/drobo-space.py --set-total <bytes> --volume /Volumes/YourDrobo
 python3 tools/drobo-space.py
 ```
 
-No driver, no SIP changes, no developer account. It will not tell you about a
-failing disk, but it does stop the array filling up behind your back, which is
-the part that actually bites.
-
-## Installing
-
-Take the zip from the [releases page](https://github.com/fetzu/ReDrobo/releases),
-then:
-
-1. Unzip it and move `ReDrobo.app` into `/Applications`. macOS refuses to
-   activate a driver extension carried by an app anywhere else, so this one is
-   not negotiable.
-2. Open it. The setup assistant asks you to approve the driver under System
-   Settings ▸ General ▸ Login Items & Extensions ▸ Driver Extensions.
-3. Restart the Mac. Until you do, the system keeps running whatever driver it
-   was running before, which is usually none at all.
-
-Building it yourself instead is below.
+No driver, no restart, no app. It will not tell you about a failing disk, but
+it does stop the array filling up behind your back, which is the part that
+actually bites.
 
 ## Building
 
-You need Xcode 26 and a paid Apple Developer account. Put the two provisioning
-profiles next to the Makefile first (see
+You need Xcode 26 and a paid Apple Developer account. The development DriverKit
+capabilities are self-serve (nothing to request, nobody to wait for, about an
+hour on Apple's portal), and a development build installs with SIP on just like
+a release one: the profile lists the Macs it may run on, and that is what macOS
+trusts. Put the two provisioning profiles next to the Makefile first (see
 [docs/DRIVERKIT.md](docs/DRIVERKIT.md)): `make` embeds them if it finds them,
 and tells you what happens if it does not.
 
@@ -144,18 +148,28 @@ you forget).
 Other targets: `make check` runs the offline checks over the record decoding,
 the status word tables and the redundancy derivation (no hardware needed),
 `make icon` regenerates the app icon, `make signing` shows what got signed and
-the state of the machine.
+the state of the machine, and `make RELEASE=1 notarize` does the Developer ID
+build, once you have managed entitlements of your own.
+
+There is one more way in, for the record: SIP off and AMFI told to look the
+other way, which needs no account at all. It is how this was developed before any of
+the paperwork existed, it works for anybody, and it is a real reduction in
+security for the whole machine rather than for ReDrobo alone. There is now no
+good reason to take it. [docs/TESTING.md](docs/TESTING.md) has it anyway,
+including how to put the Mac back afterwards.
 
 ## Documentation
 
+- [CHANGELOG.md](CHANGELOG.md): what changed in each of the three releases.
 - [docs/PROTOCOL.md](docs/PROTOCOL.md): the management protocol, field by
   field, with a confidence rating on every claim.
 - [docs/DRIVERKIT.md](docs/DRIVERKIT.md): getting a SCSI peripheral dext to
   work, and the traps that cost a day each.
 - [docs/PROVISIONING.md](docs/PROVISIONING.md): signing it yourself, step by
-  step, and the portal traps that are documented nowhere.
-- [docs/TESTING.md](docs/TESTING.md): setting a Mac up to load a development
-  driver, and putting it back afterwards.
+  step, the portal traps that are documented nowhere, and what changes once
+  Apple grants the managed entitlements.
+- [docs/TESTING.md](docs/TESTING.md): setting a Mac up to load a build you made
+  yourself, and putting it back afterwards.
 - [docs/WRITING.md](docs/WRITING.md): the write path, decoded, and why none of
   it is implemented.
 - [docs/TEARDOWN.md](docs/TEARDOWN.md): what the original Dashboard was made of.

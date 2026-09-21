@@ -5,6 +5,16 @@ SIP on, no boot-args, the Mac exactly as Apple shipped it. This is route A from
 [TESTING.md](TESTING.md), written out in full, because the developer portal is
 where all the traps are and not one of them announces itself.
 
+You do not need any of it to *run* ReDrobo: the
+[releases](https://github.com/fetzu/ReDrobo/releases) have been Developer ID
+signed and notarized since 10.09.2026, the day Apple granted the managed
+entitlements, and they install on any Mac without paperwork. This page is for
+whoever wants to build and sign their own, whether that is a fork, a new model
+to add, or simply not running someone else's binary. The last two sections
+([Once they are granted](#once-they-are-granted) and
+[Releasing from CI](#releasing-from-ci)) are how this repo's own releases are
+made, and are the part to copy if you want to distribute a build of your own.
+
 An hour the first time, and almost all of it is self-serve. One capability has
 to be requested from Apple, and [section 2](#2-the-userclient-trap) is the way
 round it while you wait. Nothing else needs anybody's approval, and none of it

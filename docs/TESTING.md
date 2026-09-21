@@ -1,5 +1,13 @@
 # Testing DroboDext
 
+**If you only want to run ReDrobo, none of this page applies to you.** The
+builds on the [releases page](https://github.com/fetzu/ReDrobo/releases) are
+Developer ID signed and notarized, so they install on a Mac in the state Apple
+shipped it: unzip, move to `/Applications`, approve, restart. This page is
+about running a build *you* made, which is a different problem, because a
+binary you signed yourself has to earn the trust the notarized one arrives
+with.
+
 The driver is built and signed. What is left is the part only you can do:
 getting a Mac to accept a driver extension that did not come from Apple.
 
@@ -25,6 +33,10 @@ spare machine.
 
 Route A is better in every respect except the one that matters if you do not
 have an account. Both are below. Do one.
+
+(Route C, which did not exist while this page was being written, is to stop
+building it yourself and take the release. It is the right answer for everybody
+who is not changing the code.)
 
 ## Before you start
 
@@ -94,8 +106,9 @@ that announces itself as something else. In outline:
    UserClient Access**, one for the driver with **DriverKit (development)** and
    **DriverKit Family SCSIController (development)**. Everything tagged
    "(development)" is a checkbox granted to anybody who ticks it. UserClient
-   Access is the one Apple has to grant by hand, and section 2 of
-   PROVISIONING.md is the way round it while you wait.
+   Access is the one Apple has to grant by hand (they granted this project's on
+   10.09.2026, three weeks after asking), and section 2 of PROVISIONING.md is
+   the way round it while you wait for yours.
 2. Every Mac it has to run on, registered under Devices by its Provisioning
    UDID.
 3. Two profiles, **DriverKit App Development** for the driver and ordinary macOS

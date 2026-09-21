@@ -293,6 +293,14 @@ arrangement again from that day: `userclient-access` on the app naming the
 driver, and `allow-any-userclient-access` gone from the driver.
 [PROVISIONING.md](PROVISIONING.md#once-they-are-granted) picks it up from there.
 
+That arrangement then had to be proven, because it had never once executed: every
+read this project had ever done went through `allow-any`, so the tight path was
+correct on paper and untried in practice. It works. A Developer ID, notarized,
+stapled build opens the user client, matches the 5D and reads it, which is what
+turned [v1.2.0](https://github.com/fetzu/ReDrobo/releases/tag/v1.2.0) from a
+pre-release into the release. The whole chain, from the entitlement request to a
+stranger's Mac, is closed.
+
 Do not go looking for the form Apple's own documentation points at.
 `developer.apple.com/contact/request/system-extension/` is linked from the
 DriverKit documentation and from Apple's System Extensions page, and it has been
